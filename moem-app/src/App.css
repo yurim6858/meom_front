@@ -1,12 +1,49 @@
 #root {
   max-width: 1280px;
-  margin: 0;
-  padding: 2rem;
-  text-align: center;
+  margin : 0 auto;
+  padding: 0;
+  /* text-align: center; */
 }
+
+.header-container {
+  width: 95vw;          /* 화면 전체 넓이 */
+  margin-left: calc(-50vw + 48%); 
+  margin-right: calc(-50vw + 50%);
+  display: flex;
+  /* justify-content: space-between; */
+  /* align-items: center; */
+  padding: 10px 40px; 
+}
+
 .logo-img{
-  display: block;
   height: 5vmin;
-  margin-left: 0;  
-  margin-top: 0;
+  flex-shrink: 0;
+  margin-right: auto;
+  gap: 15px;
+  
+}
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-left: auto;
+    }
+.btn a {
+  display: flex;
+  align-items: center;   /* 텍스트 세로 가운데 */
+  background: none;      /* 배경 없애서 로그인은 글자만 */
+  font-size: 20px;
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+}
+
+.btn button {
+  background: #d9d9d9;
+  color: #333;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 20px;
 }
