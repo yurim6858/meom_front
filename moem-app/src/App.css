@@ -26,19 +26,27 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  margin-left: auto;
-    }
-.btn a {
+}
+
+.btn nav {
   display: flex;
-  align-items: center;   /* 텍스트 세로 가운데 */
-  background: none;      /* 배경 없애서 로그인은 글자만 */
+  align-items: center;
+  gap: 15px;
+}
+
+/* '로그인' 링크 스타일 */
+.btn nav a {
+  background: none;
   font-size: 20px;
   text-decoration: none;
   color: #333;
   font-weight: bold;
+  display: flex;
+  align-items: center;
 }
 
-.btn button {
+/* '회원가입' 버튼 스타일 */
+.btn nav button {
   background: #d9d9d9;
   color: #333;
   padding: 10px 16px;
@@ -46,4 +54,57 @@
   border-radius: 8px;
   font-weight: bold;
   font-size: 20px;
+  cursor: pointer;
 }
+.post-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+/* 로그인 전체 박스 */
+.login-box {
+  width: 650px;              
+  margin: 120px auto;        /* 화면 중앙에 배치 */
+  padding: 40px;             
+  border: 2px solid #ddd;    
+  border-radius: 10px;       
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  background-color: #fff;    
+  text-align: center;        
+}
+
+/* input 공통 스타일 */
+.login-input {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 15px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 15px;
+  box-sizing: border-box;
+  font-size: 25px;
+}
+
+.login-input:focus {
+  border-color: gainsbor;  
+  outline: none;
+}
+/* 로그인 버튼 */
+.login-btn {
+  width: 100%;
+  height: 80px;
+  background-color: gainsboro; 
+  color: #000000;
+  font-size: 25px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+
+
