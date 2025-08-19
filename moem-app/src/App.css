@@ -88,7 +88,6 @@
   box-sizing: border-box;
   font-size: 25px;
 }
-
 .login-input:focus {
   border-color: gainsbor;  
   outline: none;
@@ -104,6 +103,13 @@
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+.login-logo{
+  height: 8vmin;
+  display: block;
+  align-items: center;
+  text-align: center;
+  margin: auto;
 }
 
 
