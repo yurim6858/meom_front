@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-// 예시 데이터: 마감일(deadline)과 작성자(user) 추가
 const MOCK_POSTS = [
   {
     id: 1,
@@ -28,8 +27,6 @@ const MOCK_POSTS = [
     user: { name: "지윤" },
   },
 ];
-
-// D-Day 계산 유틸
 const getDday = (dateStr) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -41,8 +38,6 @@ const getDday = (dateStr) => {
   if (diff === 0) return { label: "D-day", tone: "text-orange-600 bg-orange-50 dark:bg-orange-900/20" };
   return { label: `D-${diff}`, tone: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" };
 };
-
-// 이니셜 뱃지
 const InitialBadge = ({ name }) => {
   const initial = name?.[0] ?? "?";
   return (
@@ -51,7 +46,6 @@ const InitialBadge = ({ name }) => {
     </div>
   );
 };
-
 const MatchingPage = () => {
   const [q, setQ] = useState("");
   const [posts] = useState(MOCK_POSTS);
@@ -71,15 +65,12 @@ const MatchingPage = () => {
   return (
     <section id="explore" className="scroll-mt-[72px]">
       <div className="container max-w-[1280px] mx-auto px-4 py-8 sm:py-10">
-        {/* 헤더 */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">프로젝트 탐색</h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">원하는 프로젝트를 검색하세요. (제목, 설명, 태그)</p>
         </div>
-
-        {/* 검색 */}
         <div className="mb-6">
-          <div className="relative w-full sm:max-w-[560px] md:max-w-[640px]">
+          <div className="relative w-full sm:max-w-[1280px] md:max-w-[1280px]">
             <svg
               className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500"
               viewBox="0 0 24 24"
@@ -100,13 +91,9 @@ const MatchingPage = () => {
             />
           </div>
         </div>
-
-        {/* 결과 카운트 */}
         <div className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
           총 <span className="font-medium">{filtered.length}</span>건
         </div>
-
-        {/* 리스트: 항상 2열 */}
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-black/10 p-10 text-center text-sm text-zinc-500 dark:border-white/10">
             조건에 맞는 공고가 없어요.
@@ -120,23 +107,18 @@ const MatchingPage = () => {
                   key={p.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => navigate(`/project/${p.id}`)}
-                  onKeyDown={(e) => e.key === "Enter" && navigate(`/project/${p.id}`)}
+                  onClick={() => navigate(`/matches/${p.id}`)}
+                  onKeyDown={(e) => e.key === "Enter" && navigate(`/matches/${p.id}`)}
                   className="group cursor-pointer rounded-2xl border border-black/10 bg-white/60 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/60"
                 >
-                  {/* 상단: D-day / 마감일 */}
                   <div className="mb-3 flex items-center justify-between">
                     <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${d.tone}`}>{d.label}</span>
                     <span className="text-xs text-zinc-500 dark:text-zinc-400">
                       마감일 <span className="font-medium">{p.deadline}</span>
                     </span>
                   </div>
-
-                  {/* 제목/설명 */}
                   <h3 className="text-base font-semibold leading-tight">{p.title}</h3>
                   <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{p.desc}</p>
-
-                  {/* 태그 */}
                   <div className="mt-3 flex flex-wrap gap-2">
                     {p.tags.map((t) => (
                       <span
@@ -147,8 +129,6 @@ const MatchingPage = () => {
                       </span>
                     ))}
                   </div>
-
-                  {/* 하단: 작성자 */}
                   <div className="mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <InitialBadge name={p.user?.name} />
