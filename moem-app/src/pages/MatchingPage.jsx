@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const MOCK_POSTS = [
+export const MOCK_POSTS = [
   {
     id: 1,
     title: "프론트엔드 파트너 구함",
@@ -27,7 +27,8 @@ const MOCK_POSTS = [
     user: { name: "지윤" },
   },
 ];
-const getDday = (dateStr) => {
+
+export const getDday = (dateStr) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const due = new Date(dateStr);
