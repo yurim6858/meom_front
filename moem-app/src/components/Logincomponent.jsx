@@ -1,5 +1,6 @@
 import React ,{useState} from 'react'
 import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 
 export const Logincomponent = () => {
@@ -50,16 +51,14 @@ export const Logincomponent = () => {
         />
       </div>
       <button type="submit" className='login-btn'>로그인</button>
+      <nav>
+      <Link to="/signup">회원가입 </Link>
+      <span>|</span>
+      <Link to="/signup">아이디 찾기 </Link>
+      <span>|</span>
+      <Link to="/signup">비밀번호 찾기 </Link> 
+      </nav>
     </form>
-     {/* <Link>
-    <p>회원가입</p>
-    </Link>
-    <Link>
-    <p>아이디 찾기</p>
-    </Link>
-    <Link>
-    <p>비밀번호 찾기</p>
-    </Link>  */}
     </div>
     
   );

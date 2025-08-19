@@ -111,6 +111,34 @@
   text-align: center;
   margin: auto;
 }
+.login-box nav {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-top: 30px;
+  justify-content: center;
+}
 
+/* '로그인' 링크 스타일 */
+.login-box nav a {
+  background: none;
+  font-size: 20px;
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+.login-box nav a::after {
+   padding: 0 20px;
+   color:#ccc;
+}
+.login-box nav a:last-child::after {
+ content: none;
+}
+.login-box nav span {
+ color: #ccc;
+  padding: 0 10px; /* 구분선 좌우 간격 조정 */
+}
 
 

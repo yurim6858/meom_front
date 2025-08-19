@@ -3,6 +3,7 @@ import HomeButton from './components/HomeButton'
 import LoginPage from "./pages/Loginpage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'
+import { Signuppage } from './pages/Signuppage';
 
 function App() {
 
@@ -19,6 +20,7 @@ function App() {
       
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path='/signup' element={<Signuppage/>}/>
       </Routes>
     </Router>
         
