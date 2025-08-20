@@ -50,7 +50,9 @@ export const Logincomponent = () => {
           required
         />
       </div>
+      <Link to ="/main">
       <button type="submit" className='login-btn'>로그인</button>
+      </Link>
       <nav>
       <Link to="/signup">회원가입 </Link>
       <span>|</span>
