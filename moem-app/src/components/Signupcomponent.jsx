@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom';
 
 const Signupcomponent = () => {
   const [formData, setFormData] = useState({
@@ -82,7 +83,9 @@ const Signupcomponent = () => {
             required
           />
         </div>
+        <Link to ="/login">
         <button type="submit" className='signup-btn'>회원가입</button>
+        </Link>
       </form>
     </div>
   )
