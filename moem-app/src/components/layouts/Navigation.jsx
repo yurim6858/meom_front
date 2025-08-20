@@ -11,10 +11,10 @@ function Navigation() {
                     
                     <ul className="flex items-center space-x-4">
                         <li>
-                            <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/matches">프로젝트 탐색</Link>
+                            <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/recruitments">프로젝트 탐색</Link>
                         </li>
                         <li>
-                            <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/recruitments">프로젝트 등록</Link>
+                            <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/recruitments/new">프로젝트 등록</Link>
                         </li>
                     </ul>
                 </div>

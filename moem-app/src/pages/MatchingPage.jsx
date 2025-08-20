@@ -1,32 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-export const MOCK_POSTS = [
-  {
-    id: 1,
-    title: "프론트엔드 파트너 구함",
-    desc: "리액트 + 타입스크립트 사용. 디자인 시스템 경험 우대.",
-    tags: ["React", "TypeScript", "Design System"],
-    deadline: "2025-09-05", // YYYY-MM-DD
-    user: { name: "민지" },
-  },
-  {
-    id: 2,
-    title: "백엔드(Express) 협업",
-    desc: "API 설계와 인증(토큰) 구현 중심.",
-    tags: ["Node", "Express", "JWT"],
-    deadline: "2025-08-31",
-    user: { name: "현수" },
-  },
-  {
-    id: 3,
-    title: "AI 챗봇 PoC",
-    desc: "간단한 RAG 데모 완성. 운영 고도화 파트너 찾음.",
-    tags: ["LLM", "RAG"],
-    deadline: "2025-09-15",
-    user: { name: "지윤" },
-  },
-];
 
 export const getDday = (dateStr) => {
   const today = new Date();
@@ -39,6 +12,7 @@ export const getDday = (dateStr) => {
   if (diff === 0) return { label: "D-day", tone: "text-orange-600 bg-orange-50 dark:bg-orange-900/20" };
   return { label: `D-${diff}`, tone: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" };
 };
+
 const InitialBadge = ({ name }) => {
   const initial = name?.[0] ?? "?";
   return (
@@ -47,18 +21,32 @@ const InitialBadge = ({ name }) => {
     </div>
   );
 };
+
 const MatchingPage = () => {
   const [q, setQ] = useState("");
-  const [posts] = useState(MOCK_POSTS);
+  const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/recruitments")
+      .then((res) => {
+        if (!res.ok) throw new Error("네트워크 오류");
+        return res.json();
+      })
+      .then((data) => setPosts(data))
+      .catch((err) => {
+        console.error("공고 불러오기 실패:", err);
+        setPosts([]);
+      });
+  }, []);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return posts;
     return posts.filter((p) => {
-      const inTitle = p.title.toLowerCase().includes(needle);
-      const inDesc = p.desc.toLowerCase().includes(needle);
-      const inTags = p.tags.some((t) => t.toLowerCase().includes(needle));
+      const inTitle = p.title?.toLowerCase().includes(needle);
+      const inDesc = p.desc?.toLowerCase().includes(needle);
+      const inTags = (p.tags || []).some((t) => t.toLowerCase().includes(needle));
       return inTitle || inDesc || inTags;
     });
   }, [q, posts]);
@@ -70,6 +58,7 @@ const MatchingPage = () => {
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">프로젝트 탐색</h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">원하는 프로젝트를 검색하세요. (제목, 설명, 태그)</p>
         </div>
+
         <div className="mb-6">
           <div className="relative w-full sm:max-w-[1280px] md:max-w-[1280px]">
             <svg
@@ -92,9 +81,11 @@ const MatchingPage = () => {
             />
           </div>
         </div>
+
         <div className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
           총 <span className="font-medium">{filtered.length}</span>건
         </div>
+
         {filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-black/10 p-10 text-center text-sm text-zinc-500 dark:border-white/10">
             조건에 맞는 공고가 없어요.
@@ -108,8 +99,8 @@ const MatchingPage = () => {
                   key={p.id}
                   role="button"
                   tabIndex={0}
-                  onClick={() => navigate(`/matches/${p.id}`)}
-                  onKeyDown={(e) => e.key === "Enter" && navigate(`/matches/${p.id}`)}
+                  onClick={() => navigate(`/recruitments/${p.id}`)}
+                  onKeyDown={(e) => e.key === "Enter" && navigate(`/recruitments/${p.id}`)}
                   className="group cursor-pointer rounded-2xl border border-black/10 bg-white/60 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/60"
                 >
                   <div className="mb-3 flex items-center justify-between">
@@ -121,7 +112,7 @@ const MatchingPage = () => {
                   <h3 className="text-base font-semibold leading-tight">{p.title}</h3>
                   <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">{p.desc}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {p.tags.map((t) => (
+                    {(p.tags || []).map((t) => (
                       <span
                         key={t}
                         className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs text-zinc-700 transition group-hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:group-hover:bg-zinc-700"

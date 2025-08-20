@@ -9,9 +9,9 @@ export default function ProjectCreatePage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
-  const [tagsInput, setTagsInput] = useState(""); // 콤마 구분
+  const [tagsInput, setTagsInput] = useState(""); 
   const [deadline, setDeadline] = useState("");
-  const [username, setUsername] = useState(""); // 작성자 이름(임시)
+  const [username, setUsername] = useState(""); 
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -48,18 +48,25 @@ export default function ProjectCreatePage() {
     if (!validate()) return;
     try {
       setSubmitting(true);
-
-      // TODO: 실제 API 연동으로 교체
-      // const res = await fetch('/api/projects', { method:'POST', body: JSON.stringify({...}) })
-      // const { id } = await res.json();
-
-      const fakeId = Math.floor(Math.random() * 900000 + 100000); // 임시 id
-      // 성공 후 상세로 이동
-      navigate(`/project/${fakeId}`, { replace: true });
+  
+      const response = await fetch("http://localhost:8080/api/recruitments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, desc, tags, deadline, username }),
+      });
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        console.error(err);
+        alert("등록 실패");
+        return;
+      }
+      const saved = await response.json(); // { id, title, desc, ... }
+      navigate(`/recruitments/${saved.id}`);  // ✅ 등록된 공고 상세로 이동
     } finally {
       setSubmitting(false);
     }
   };
+  
 
   return (
     <section className="scroll-mt-[72px]">

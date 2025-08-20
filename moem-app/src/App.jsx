@@ -9,9 +9,9 @@ function App() {
   return (
     <Layout>
       <Routes>
-        <Route path='/matches' element={<MatchingPage/>} />
-        <Route path='/matches/:id' element={<MatchingDetailPage/>} />
-        <Route path='/recruitments' element={<RecruitmentPage/>} />
+        <Route path='/recruitments' element={<MatchingPage/>} />
+        <Route path='/recruitments/:id' element={<MatchingDetailPage/>} />
+        <Route path='/recruitments/new' element={<RecruitmentPage/>} />
       </Routes>
     </Layout>
   )
