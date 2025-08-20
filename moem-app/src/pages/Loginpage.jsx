@@ -3,7 +3,7 @@ import logo from '../assets/logo.png'
 import { Logincomponent } from '../components/Logincomponent'
 
 
-const Loginpage = () => {
+const LoginPage = () => {
   return (
     <div>
         <img src={logo} className="login-logo"/>
@@ -12,4 +12,4 @@ const Loginpage = () => {
   )
 }
 
-export default Loginpage
+export default LoginPage
