@@ -2,7 +2,7 @@ import React from 'react'
 import logo from '../assets/logo.png'
 import Maincomponent from '../components/maincomponent'
 
-export const Mainpage = () => {
+export const DashBoard = () => {
   return (
     <div className='header-container'>
         <img src={logo} className="logo-img"/>
@@ -12,3 +12,4 @@ export const Mainpage = () => {
     </div>
   )
 }
+export default DashBoard

@@ -3,7 +3,7 @@ import logo from '../assets/logo.png'
 import poster from '../assets/poster.png'
 import HomeButton from '../components/HomeButton'
 
-const Home = () => {
+const LandingPage = () => {
   return (
     <div>
     <div className='header-container'>
@@ -17,4 +17,4 @@ const Home = () => {
   )
 }
 
-export default Home
+export default LandingPage
