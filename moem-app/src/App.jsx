@@ -1,4 +1,4 @@
-import LoginPage from "./pages/Loginpage";
+import LoginPage from "./pages/auth/LoginPage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'
 import Layout from './components/layouts/layout';
@@ -7,7 +7,7 @@ import RecruitmentPage from './pages/RecruitmentPage';
 import MatchingDetailPage from './pages/MatchingDetailPage';
 import LandingPage from "./pages/LandingPage";
 import DashBoard from './pages/DashBoard';
-import { SignupPage } from './pages/SignupPage';
+import { SignupPage } from './pages/auth/SignupPage';
 
 function App() {
   return (
