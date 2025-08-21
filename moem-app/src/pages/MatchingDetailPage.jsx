@@ -25,6 +25,7 @@ const RecruitmentDetailPage = () => {
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
             주소를 확인하거나 목록으로 돌아가세요.
           </p>
+
           <button
             onClick={() => navigate(-1)}
             className="mt-6 rounded-lg border border-black/10 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-white/10 dark:hover:bg-zinc-800"
@@ -44,21 +45,22 @@ const RecruitmentDetailPage = () => {
     );
   }
 
-  const d = getDday(post.deadline);
+  const deadline = getDday(post.deadline);
 
   return (
     <section className="scroll-mt-[72px]">
       <div className="container max-w-[1280px] mx-auto px-4 py-10">
         <div className="mb-6 flex items-center justify-between">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(`/recruitments`)}
             className="rounded-lg border border-black/10 px-3 py-1.5 text-sm hover:bg-zinc-50 dark:border-white/10 dark:hover:bg-zinc-800"
           >
             ← 목록으로
           </button>
+
           <div className="flex items-center gap-2 text-xs text-zinc-500">
-            <span className={`rounded-md px-2 py-0.5 font-semibold ${d.tone}`}>
-              {d.label}
+            <span className={`rounded-md px-2 py-0.5 font-semibold ${deadline.tone}`}>
+              {deadline.label}
             </span>
             <span>
               마감일 <b>{post.deadline || "-"}</b>
@@ -85,17 +87,16 @@ const RecruitmentDetailPage = () => {
 
           <h3 className="mt-6 text-sm font-semibold">태그</h3>
           <div className="mt-2 flex flex-wrap gap-2">
-            {post.tags?.map((t) => (
+            {post.tags?.map((tag) => (
               <span
-                key={t}
+                key={tag}
                 className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
               >
-                {t}
+                {tag}
               </span>
             ))}
           </div>
 
-          {/* 확장 영역 예시 */}
           <div className="mt-8 grid gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
               <div className="text-xs text-zinc-500">협업 형태</div>

@@ -26,8 +26,8 @@ export default function ProjectCreatePage() {
   );
 
   const todayISO = useMemo(() => {
-    const d = new Date(); d.setHours(0,0,0,0);
-    return d.toISOString().slice(0, 10);
+    const today = new Date(); today.setHours(0,0,0,0);
+    return today.toISOString().slice(0, 10);
   }, []);
 
   const validate = () => {
@@ -60,14 +60,13 @@ export default function ProjectCreatePage() {
         alert("등록 실패");
         return;
       }
-      const saved = await response.json(); // { id, title, desc, ... }
-      navigate(`/recruitments/${saved.id}`);  // ✅ 등록된 공고 상세로 이동
+      const saved = await response.json();
+      navigate(`/recruitments/${saved.id}`);
     } finally {
       setSubmitting(false);
     }
   };
   
-
   return (
     <section className="scroll-mt-[72px]">
       <div className="container max-w-[1280px] mx-auto px-4 py-8 sm:py-10">
@@ -87,7 +86,6 @@ export default function ProjectCreatePage() {
           className="rounded-2xl border border-black/10 bg-white/60 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-zinc-900/60"
           noValidate
         >
-          {/* 제목 */}
           <div className="mb-5">
             <label className="mb-1 block text-sm font-medium">제목</label>
             <input
@@ -96,13 +94,13 @@ export default function ProjectCreatePage() {
               placeholder="예) 프론트엔드 파트너 구합니다"
               className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
             />
+
             <div className="mt-1 flex justify-between text-xs text-zinc-500">
               <span>{errors.title || "\u00A0"}</span>
               <span>{title.length}/{MAX_TITLE}</span>
             </div>
           </div>
 
-          {/* 설명 */}
           <div className="mb-5">
             <label className="mb-1 block text-sm font-medium">설명</label>
             <textarea
@@ -112,13 +110,13 @@ export default function ProjectCreatePage() {
               placeholder="역할, 기술스택, 협업 방식, 기대사항 등을 적어주세요."
               className="w-full resize-y rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
             />
+
             <div className="mt-1 flex justify-between text-xs text-zinc-500">
               <span>{errors.desc || "\u00A0"}</span>
               <span>{desc.length}/{MAX_DESC}</span>
             </div>
           </div>
 
-          {/* 태그 */}
           <div className="mb-5">
             <label className="mb-1 block text-sm font-medium">태그</label>
             <input
@@ -127,6 +125,7 @@ export default function ProjectCreatePage() {
               placeholder="React, TypeScript, RAG"
               className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
             />
+
             <div className="mt-2 flex flex-wrap gap-2">
               {tags.map((tag) => (
                 <span
@@ -142,7 +141,6 @@ export default function ProjectCreatePage() {
             </div>
           </div>
 
-          {/* 마감일 / 작성자 */}
           <div className="mb-5 grid gap-4 sm:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-medium">마감일</label>
@@ -153,8 +151,10 @@ export default function ProjectCreatePage() {
                 onChange={(e) => setDeadline(e.target.value)}
                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
               />
+
               <div className="mt-1 text-xs text-red-600">{errors.deadline}</div>
             </div>
+
             <div>
               <label className="mb-1 block text-sm font-medium">작성자</label>
               <input
@@ -163,11 +163,11 @@ export default function ProjectCreatePage() {
                 placeholder="예) 민지"
                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
               />
+
               <div className="mt-1 text-xs text-red-600">{errors.username}</div>
             </div>
           </div>
 
-          {/* 액션 */}
           <div className="mt-6 flex items-center gap-3">
             <button
               type="submit"
@@ -176,6 +176,7 @@ export default function ProjectCreatePage() {
             >
               {submitting ? "등록 중..." : "등록하기"}
             </button>
+
             <button
               type="button"
               onClick={() => navigate(-1)}
