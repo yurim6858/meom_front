@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { getDday } from "./MatchingPage";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -16,6 +16,27 @@ const RecruitmentDetailPage = () => {
       .then((data) => setPost(data))
       .catch(() => setPost(undefined));
   }, [id]);
+
+  const handleDelete = useCallback(async () => {
+    if (!window.confirm("정말 삭제할까요? 이 작업은 되돌릴 수 없습니다.")) return;
+    try {
+      const res = await fetch(`http://localhost:8080/api/recruitments/${id}`, {
+        method: "DELETE",
+      });
+      if (res.status === 204) {
+        alert("삭제되었습니다.");
+        navigate("/recruitments"); // 목록으로
+        return;
+      }
+      // 실패 응답 처리
+      const err = await res.json().catch(() => ({}));
+      console.error("삭제 실패:", err);
+      alert(err?.message || "삭제에 실패했습니다.");
+    } catch (e) {
+      console.error(e);
+      alert("네트워크 오류로 삭제에 실패했습니다.");
+    }
+  }, [id, navigate]);
 
   if (post === undefined) {
     return (
@@ -120,6 +141,12 @@ const RecruitmentDetailPage = () => {
               onClick={() => alert("스크랩 기능은 추후 연결됩니다.")}
             >
               스크랩
+            </button>
+            <button
+              className="rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+              onClick={handleDelete}
+            >
+              삭제
             </button>
           </div>
         </div>

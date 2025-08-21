@@ -7,23 +7,22 @@ const MAX_DESC = 1000;
 
 export default function ProjectCreatePage() {
   const navigate = useNavigate();
+
   const [title, setTitle] = useState("");
-  const [desc, setDesc] = useState("");
-  const [tagsInput, setTagsInput] = useState(""); 
+  const [description, setDescription] = useState(""); 
+  const [tagsInput, setTagsInput] = useState("");
   const [deadline, setDeadline] = useState("");
-  const [username, setUsername] = useState(""); 
+  const [username, setUsername] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const tags = useMemo(
-    () =>
-      tagsInput
-        .split(",")
-        .map((t) => t.trim())
-        .filter((t) => t.length > 0)
-        .slice(0, 12),
-    [tagsInput]
-  );
+  const tags = useMemo(() => {
+    const arr = tagsInput
+      .split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    return Array.from(new Set(arr)).slice(0, 12); 
+  }, [tagsInput]);
 
   const todayISO = useMemo(() => {
     const today = new Date(); today.setHours(0,0,0,0);
@@ -34,11 +33,15 @@ export default function ProjectCreatePage() {
     const e = {};
     if (!title.trim()) e.title = "제목을 입력해 주세요.";
     if (title.trim().length > MAX_TITLE) e.title = `제목은 최대 ${MAX_TITLE}자입니다.`;
-    if (!desc.trim()) e.desc = "설명을 입력해 주세요.";
-    if (desc.trim().length > MAX_DESC) e.desc = `설명은 최대 ${MAX_DESC}자입니다.`;
+
+    if (!description.trim()) e.description = "설명을 입력해 주세요.";                 
+    if (description.trim().length > MAX_DESC) e.description = `설명은 최대 ${MAX_DESC}자입니다.`;
+
     if (!deadline) e.deadline = "마감일을 선택해 주세요.";
     if (deadline && deadline < todayISO) e.deadline = "마감일은 오늘 이후여야 합니다.";
+
     if (!username.trim()) e.username = "작성자 이름을 입력해 주세요.";
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -46,27 +49,30 @@ export default function ProjectCreatePage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+
     try {
       setSubmitting(true);
-  
-      const response = await fetch("http://localhost:8080/api/recruitments", {
+
+      const res = await fetch("http://localhost:8080/api/recruitments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, desc, tags, deadline, username }),
+        body: JSON.stringify({ title, description, tags, deadline, username }),
       });
-      if (!response.ok) {
-        const err = await response.json().catch(() => ({}));
-        console.error(err);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        console.error("등록 실패:", err);
         alert("등록 실패");
         return;
       }
-      const saved = await response.json();
+
+      const saved = await res.json();
       navigate(`/recruitments/${saved.id}`);
     } finally {
       setSubmitting(false);
     }
   };
-  
+
   return (
     <section className="scroll-mt-[72px]">
       <div className="container max-w-[1280px] mx-auto px-4 py-8 sm:py-10">
@@ -94,7 +100,6 @@ export default function ProjectCreatePage() {
               placeholder="예) 프론트엔드 파트너 구합니다"
               className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
             />
-
             <div className="mt-1 flex justify-between text-xs text-zinc-500">
               <span>{errors.title || "\u00A0"}</span>
               <span>{title.length}/{MAX_TITLE}</span>
@@ -104,16 +109,15 @@ export default function ProjectCreatePage() {
           <div className="mb-5">
             <label className="mb-1 block text-sm font-medium">설명</label>
             <textarea
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
+              value={description}                                  
+              onChange={(e) => setDescription(e.target.value)} 
               rows={6}
               placeholder="역할, 기술스택, 협업 방식, 기대사항 등을 적어주세요."
               className="w-full resize-y rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
             />
-
             <div className="mt-1 flex justify-between text-xs text-zinc-500">
-              <span>{errors.desc || "\u00A0"}</span>
-              <span>{desc.length}/{MAX_DESC}</span>
+              <span>{errors.description || "\u00A0"}</span>
+              <span>{description.length}/{MAX_DESC}</span>
             </div>
           </div>
 
@@ -125,11 +129,10 @@ export default function ProjectCreatePage() {
               placeholder="React, TypeScript, RAG"
               className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
             />
-
             <div className="mt-2 flex flex-wrap gap-2">
-              {tags.map((tag) => (
+              {tags.map((tag, idx) => (
                 <span
-                  key={tag}
+                  key={`${tag}-${idx}`}
                   className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                 >
                   {tag}
@@ -151,7 +154,6 @@ export default function ProjectCreatePage() {
                 onChange={(e) => setDeadline(e.target.value)}
                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
               />
-
               <div className="mt-1 text-xs text-red-600">{errors.deadline}</div>
             </div>
 
@@ -163,7 +165,6 @@ export default function ProjectCreatePage() {
                 placeholder="예) 민지"
                 className="w-full rounded-xl border border-black/10 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
               />
-
               <div className="mt-1 text-xs text-red-600">{errors.username}</div>
             </div>
           </div>
@@ -176,7 +177,6 @@ export default function ProjectCreatePage() {
             >
               {submitting ? "등록 중..." : "등록하기"}
             </button>
-
             <button
               type="button"
               onClick={() => navigate(-1)}
