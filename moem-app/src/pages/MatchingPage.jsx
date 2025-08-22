@@ -131,7 +131,7 @@ const MatchingPage = () => {
 
                   <div className="mt-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <InitialBadge name={posting.username} /> {/* ✅ user.name → username */}
+                      <InitialBadge name={posting.username} />
                       <span className="text-sm text-zinc-700 dark:text-zinc-200">
                         {posting.username ?? "알 수 없음"}
                       </span>

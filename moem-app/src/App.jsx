@@ -10,6 +10,7 @@ import MatchingDetailPage from './pages/MatchingDetailPage';
 import { Signuppage } from './pages/Signuppage';
 import { Mainpage } from './pages/Mainpage';
 import Home from "./pages/Home";
+import UserMatchingPage from './pages/UserMatchingPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path='/recruitments' element={<MatchingPage/>} />
         <Route path='/recruitments/:id' element={<MatchingDetailPage/>} />
         <Route path='/recruitments/new' element={<RecruitmentPage/>} />
+        <Route path='/usermatches' element={<UserMatchingPage/>}/>
       </Routes>
     </Layout>
   )
