@@ -4,12 +4,13 @@ import LoginPage from "./pages/Loginpage";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import './App.css'
 import Layout from './components/layouts/layout';
-import MatchingPage from './pages/MatchingPage';
-import RecruitmentPage from './pages/RecruitmentPage';
-import MatchingDetailPage from './pages/MatchingDetailPage';
+import MatchingPage from './pages/Matching/MatchingPage';
+import RecruitmentPage from './pages/Matching/RecruitmentPage';
+import MatchingDetailPage from './pages/Matching/MatchingDetailPage';
 import { Signuppage } from './pages/Signuppage';
 import { Mainpage } from './pages/Mainpage';
 import Home from "./pages/Home";
+import UserMatchingPage from './pages/Matching/UserMatchingPage';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path='/recruitments' element={<MatchingPage/>} />
         <Route path='/recruitments/:id' element={<MatchingDetailPage/>} />
         <Route path='/recruitments/new' element={<RecruitmentPage/>} />
+        <Route path='/usermatches' element={<UserMatchingPage/>}/>
       </Routes>
     </Layout>
   )
