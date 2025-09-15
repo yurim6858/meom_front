@@ -1,41 +1,36 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-export const getDday = (dateStr) => {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const due = new Date(dateStr); due.setHours(0, 0, 0, 0);
-  const diffenrence = Math.floor((due - today) / (1000 * 60 * 60 * 24));
-  if (diffenrence < 0) return { label: "마감",  tone: "text-red-600 bg-red-50 dark:bg-red-900/20" };
-  if (diffenrence === 0) return { label: "D-day", tone: "text-orange-600 bg-orange-50 dark:bg-orange-900/20" };
-  return { label: `D-${diffenrence}`, tone: "text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20" };
-};
-
-const InitialBadge = ({ name }) => {
-  const initial = name?.[0] ?? "?";
-  return (
-    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-100 text-xs font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-      {initial}
-    </div>
-  );
-};
+import DdayBadge from "../../components/shared/DdayBadge";
+import InitialBadge from "../../components/shared/InitialBadge";
+import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import SearchInput from "../../components/shared/SearchInput";
 
 const MatchingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [postings, setPostings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    (async () => {
+    const fetchPostings = async () => {
       try {
+        setLoading(true);
+        setError(null);
         const res = await fetch("http://localhost:8080/api/recruitments");
         if (!res.ok) throw new Error("네트워크 오류");
         const data = await res.json();
         setPostings(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("공고 불러오기 실패:", err);
+        setError("공고를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
         setPostings([]);
+      } finally {
+        setLoading(false);
       }
-    })();
+    };
+
+    fetchPostings();
   }, []);
 
   const filteredPostings = useMemo(() => {
@@ -44,13 +39,19 @@ const MatchingPage = () => {
 
     return postings.filter((posting) => {
       const titleMatch = posting.title?.toLowerCase().includes(searchKeyword);
+      const introMatch = posting.intro?.toLowerCase().includes(searchKeyword);
       const descMatch = posting.description?.toLowerCase().includes(searchKeyword);
       const tagsMatch = (posting.tags || []).some((tag) =>
         tag?.toLowerCase().includes(searchKeyword)
       );
-      return titleMatch || descMatch || tagsMatch;
+      const usernameMatch = posting.username?.toLowerCase().includes(searchKeyword);
+      return titleMatch || introMatch || descMatch || tagsMatch || usernameMatch;
     });
   }, [searchQuery, postings]);
+
+  const handleRetry = () => {
+    window.location.reload();
+  };
 
   return (
     <section id="explore" className="scroll-mt-[72px]">
@@ -58,41 +59,45 @@ const MatchingPage = () => {
         <div className="mb-6">
           <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">프로젝트 탐색</h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-            원하는 프로젝트를 검색하세요. (제목, 설명, 태그)
+            원하는 프로젝트를 검색하세요. (제목, 한줄소개, 설명, 태그, 작성자명)
           </p>
         </div>
 
         <div className="mb-6">
-          <div className="relative w-full sm:max-w-[1280px] md:max-w-[1280px]">
-            <svg
-              className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500"
-              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"
-            >
-              <circle cx="11" cy="11" r="7" />
-              <path d="M20 20 L17 17" />
-            </svg>
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="검색: React, 인증, RAG…"
-              aria-label="프로젝트 검색"
-              className="w-full rounded-xl border border-black/10 bg-white py-3 pl-11 pr-3 text-base outline-none transition focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
-            />
-          </div>
+          <SearchInput
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="검색: React, TypeScript, RAG, 작성자명..."
+            className="sm:max-w-[1280px] md:max-w-[1280px]"
+          />
         </div>
 
         <div className="mb-3 text-sm text-zinc-600 dark:text-zinc-400">
           총 <span className="font-medium">{filteredPostings.length}</span>건
         </div>
 
-        {filteredPostings.length === 0 ? (
+        {loading ? (
+          <div className="flex justify-center items-center py-16">
+            <LoadingSpinner size="lg" />
+            <span className="ml-3 text-sm text-zinc-600 dark:text-zinc-400">공고를 불러오는 중...</span>
+          </div>
+        ) : error ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-10 text-center dark:border-red-800 dark:bg-red-900/20">
+            <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>
+            <button
+              onClick={handleRetry}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
+            >
+              다시 시도
+            </button>
+          </div>
+        ) : filteredPostings.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-black/10 p-10 text-center text-sm text-zinc-500 dark:border-white/10">
-            조건에 맞는 공고가 없어요.
+            {searchQuery ? "검색 조건에 맞는 공고가 없어요." : "등록된 공고가 없어요."}
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             {filteredPostings.map((posting) => {
-              const dday = getDday(posting.deadline);
               const uniqueTags = Array.from(new Set(posting.tags || []));
 
               return (
@@ -105,17 +110,15 @@ const MatchingPage = () => {
                   className="group cursor-pointer rounded-2xl border border-black/10 bg-white/60 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/60"
                 >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className={`rounded-md px-2 py-0.5 text-xs font-semibold ${dday.tone}`}>
-                      {dday.label}
-                    </span>
+                    <DdayBadge dateStr={posting.deadline} />
                     <span className="text-xs text-zinc-500 dark:text-zinc-400">
                       마감일 <span className="font-medium">{posting.deadline ?? "-"}</span>
                     </span>
                   </div>
 
                   <h3 className="text-base font-semibold leading-tight">{posting.title}</h3>
-                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-                    {posting.description}
+                  <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300 line-clamp-2">
+                    {posting.intro}
                   </p>
 
                   <div className="mt-3 flex flex-wrap gap-2">

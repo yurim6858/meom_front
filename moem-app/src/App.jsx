@@ -7,6 +7,7 @@ import Layout from './components/layouts/layout';
 import MatchingPage from './pages/Matching/MatchingPage';
 import RecruitmentPage from './pages/Matching/RecruitmentPage';
 import MatchingDetailPage from './pages/Matching/MatchingDetailPage';
+import EditRecruitmentPage from './pages/Matching/EditRecruitmentPage';
 import { Signuppage } from './pages/Signuppage';
 import { Mainpage } from './pages/Mainpage';
 import Home from "./pages/Home";
@@ -22,6 +23,7 @@ function App() {
         <Route path='/main' element={<Mainpage/>}/>
         <Route path='/recruitments' element={<MatchingPage/>} />
         <Route path='/recruitments/:id' element={<MatchingDetailPage/>} />
+        <Route path='/recruitments/:id/edit' element={<EditRecruitmentPage/>} />
         <Route path='/recruitments/new' element={<RecruitmentPage/>} />
         <Route path='/usermatches' element={<UserMatchingPage/>}/>
       </Routes>
