@@ -8,6 +8,7 @@ import SearchInput from "../../components/shared/SearchInput";
 const MatchingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [postings, setPostings] = useState([]);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -66,7 +67,7 @@ const MatchingPage = () => {
         <div className="mb-6">
           <SearchInput
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="검색: React, TypeScript, RAG, 작성자명..."
             className="sm:max-w-[1280px] md:max-w-[1280px]"
           />
@@ -106,7 +107,7 @@ const MatchingPage = () => {
                   role="button"
                   tabIndex={0}
                   onClick={() => navigate(`/recruitments/${posting.id}`)}
-                  onKeyDown={(e) => e.key === "Enter" && navigate(`/recruitments/${posting.id}`)}
+                  onKeyDown={(event) => event.key === "Enter" && navigate(`/recruitments/${posting.id}`)}
                   className="group cursor-pointer rounded-2xl border border-black/10 bg-white/60 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/60"
                 >
                   <div className="mb-3 flex items-center justify-between">

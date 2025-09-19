@@ -7,7 +7,7 @@ const MAX_DESCRIPTION = 1200;
 const ROLE_PRESET = ["Frontend", "Backend", "AI/ML", "Designer", "PM", "Fullstack"];
 const WORK_STYLES = ["온라인", "오프라인", "하이브리드"];
 
-export default function RecruitmentPage() {
+export default function MatchingRegister() {
   const navigate = useNavigate();
 
   const [title, setTitle] = useState("");
@@ -40,7 +40,7 @@ export default function RecruitmentPage() {
   // 조작 함수 1) 행 추가
   // ---------------------------
   function addPositionRow() {
-    // previousPositions는 “이전 상태값”을 리액트가 넣어주는 인자 (이름은 임의)
+    // previousPositions는 "이전 상태값"을 리액트가 넣어주는 인자 (이름은 임의)
     setPositions((previousPositions) => [
       ...previousPositions,
       { role: "", headcount: 1 },

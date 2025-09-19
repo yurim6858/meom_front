@@ -293,7 +293,6 @@ export default function MatchingDetailPage() {
             {/* 액션 버튼 카드 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">액션</h3>
                 <div className="space-y-3">
                   <button
                     className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md dark:bg-gray-500 dark:hover:bg-gray-600"
