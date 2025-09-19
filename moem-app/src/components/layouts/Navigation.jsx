@@ -17,7 +17,10 @@ function Navigation() {
                             <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/recruitments/new">프로젝트 등록</Link>
                         </li>
                         <li>
-                            <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/usermatches">유저 탐색</Link>
+                            <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/users">유저 탐색</Link>
+                        </li>
+                        <li>
+                            <Link className="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/80" to="/my-posts">내 공고 관리</Link>
                         </li>
                     </ul>
                 </div>

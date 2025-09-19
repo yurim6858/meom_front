@@ -8,16 +8,16 @@ export const Logincomponent = () => {
     const[password, setPassword]=useState('');
     const navigate = useNavigate();
 
-    const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const handleInputChange = (event) => {
+    const { name, value } = event.target;
     if (name === 'userid') {
       setUserid(value);
     } else if (name === 'password') {
       setPassword(value);
     }
   };
-    const handleLogin = (e) => {
-        e.preventDefault();
+    const handleLogin = (event) => {
+        event.preventDefault();
 
         if(userid==='root'&& password==='1234'){
             navigate('/')

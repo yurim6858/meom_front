@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export const MOCK_USERS = [
   {
@@ -16,8 +17,17 @@ export const MOCK_USERS = [
 ];
 
 const MatchingUserPage = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [users] = useState(MOCK_USERS);
+  const [users, setUsers] = useState(MOCK_USERS);
+
+  // 컴포넌트 마운트 시 로컬 스토리지에서 유저 데이터 로드
+  React.useEffect(() => {
+    const savedUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
+    if (savedUsers.length > 0) {
+      setUsers([...MOCK_USERS, ...savedUsers]);
+    }
+  }, []);
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -35,21 +45,33 @@ const MatchingUserPage = () => {
     alert(`${user.username}님에게 메시지를 보낼 수 있는 기능은 곧 연결됩니다!`);
   };
 
+  const handleUserClick = (user) => {
+    navigate(`/users/${user.id}`);
+  };
+
   return (
     <section className="scroll-mt-[72px]">
-      <div className="container max-w-[1280px] mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">유저 탐색</h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
-            같이 프로젝트하고 싶은 사람을 찾아보세요.
-          </p>
+      <div className="container max-w-[1280px] mx-auto px-4 py-8 sm:py-10">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">유저 탐색</h1>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+              같이 프로젝트하고 싶은 사람을 찾아보세요. (닉네임, 소개, 기술)
+            </p>
+          </div>
+          <button
+            onClick={() => navigate("/users/register")}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+          >
+            프로필 등록
+          </button>
         </div>
 
         <div className="mb-6">
           <input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="검색: 닉네임/소개/기술"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="검색: 닉네임, 소개, 기술..."
             className="w-full rounded-xl border border-black/10 bg-white py-3 px-3 text-base outline-none focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
           />
         </div>
@@ -67,40 +89,56 @@ const MatchingUserPage = () => {
             {filtered.map((user) => (
               <li
                 key={user.id}
-                className="rounded-2xl border border-black/10 bg-white/60 p-5 shadow-sm dark:border-white/10 dark:bg-zinc-900/60"
+                onClick={() => handleUserClick(user)}
+                className="group cursor-pointer rounded-2xl border border-black/10 bg-white/60 p-5 shadow-sm backdrop-blur transition hover:-translate-y-0.5 hover:shadow-md dark:border-white/10 dark:bg-zinc-900/60"
               >
-                <div className="flex items-center gap-3">
+                <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-sm font-semibold text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                     {user.username?.[0] ?? "?"}
                   </div>
-                  <div>
-                    <h3 className="text-base font-semibold">{user.username}</h3>
+                  <div className="flex-1">
+                    <h3 className="text-base font-semibold leading-tight">{user.username}</h3>
                     <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300 line-clamp-2">
                       {user.intro}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex justify-between">
-                    <div className="mt-3 flex flex-wrap gap-2">
-                        {(user.skills || []).map((skill, idx) => (
-                            <span
-                                key={`${user.id}-${skill}-${idx}`}
-                                className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
-                            >
-                            {skill}
-                            </span>
-                        ))}
-                    </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(user.skills || []).map((skill, idx) => (
+                    <span
+                      key={`${user.id}-${skill}-${idx}`}
+                      className="rounded-lg bg-zinc-100 px-2.5 py-1 text-xs text-zinc-700 transition group-hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-200 dark:group-hover:bg-zinc-700"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
 
-                    <div className="mt-4 flex justify-end">
-                        <button
-                            onClick={() => handleMessage(user)}
-                            className="rounded-xl bg-black px-3 py-1.5 text-xs font-medium text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
-                        >
-                            메시지 보내기
-                        </button>
-                    </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="text-xs text-zinc-500 opacity-0 transition group-hover:opacity-100">
+                    상세보기 →
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleMessage(user);
+                      }}
+                      className="rounded-xl bg-gray-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
+                    >
+                      메시지
+                    </button>
+                    <button
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleUserClick(user);
+                      }}
+                      className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+                    >
+                      상세보기
+                    </button>
+                  </div>
                 </div>
               </li>
             ))}
