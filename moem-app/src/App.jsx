@@ -8,6 +8,7 @@ import MatchingDetailPage from './pages/MatchingDetailPage';
 import LandingPage from "./pages/LandingPage";
 import DashBoard from './pages/DashBoard';
 import { SignupPage } from './pages/auth/SignupPage';
+import ReviewPage from "./pages/ReviewPage";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path='/recruitments' element={<MatchingPage/>} />
         <Route path='/recruitments/:id' element={<MatchingDetailPage/>} />
         <Route path='/recruitments/new' element={<RecruitmentPage/>} />
+        <Route path='/review' element={<ReviewPage/>} />
       </Routes>
     </Layout>
   )
