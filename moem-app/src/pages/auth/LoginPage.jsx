@@ -19,11 +19,11 @@ const LoginPage = () => {
   const handleLogin = (e) => {
       e.preventDefault();
 
-      if(userid==='root'&& password==='1234'){
-          navigate('/')
-       }else{
-          alert('아이디 또는 비밀번호가 잘 못 되었습니다.')
-      }
+      // if(userid==='root'&& password==='1234'){
+      //     navigate('/')
+      //  }else{
+      //     alert('아이디 또는 비밀번호가 잘 못 되었습니다.')
+      // }
   }
 
   return (
