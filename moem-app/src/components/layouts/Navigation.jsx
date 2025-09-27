@@ -11,19 +11,19 @@ function Navigation() {
                     
                     <ul className="flex items-center space-x-4">
                          <li>
-                        <Link className="px-10 py-2 rounded-md text-[35px] font-medium hover:bg-white/80" to="/recruitments">개인프로젝트</Link>
+                        <Link className="px-10 py-2 rounded-md text-[20px] font-medium hover:bg-white/80" to="/recruitments">개인프로젝트</Link>
                     </li>
                     <li>
-                        <Link className="px-10 py-2 rounded-md text-[35px] font-medium hover:bg-white/80" to="/recruitments/new">팀프로젝트</Link>
+                        <Link className="px-10 py-2 rounded-md text-[20px] font-medium hover:bg-white/80" to="/recruitments/new">팀프로젝트</Link>
                     </li>
                     <li>
-                        <Link className="px-10 py-2 rounded-md text-[35px] font-medium hover:bg-white/80" to="/recruitments/new">매칭</Link>
+                        <Link className="px-10 py-2 rounded-md text-[20px] font-medium hover:bg-white/80" to="/recruitments/new">매칭</Link>
                     </li>
                     <li>
-                        <Link className="px-10 py-2 rounded-md text-[35px] font-medium hover:bg-white/80" to="/mypage">마이페이지</Link>
+                        <Link className="px-10 py-2 rounded-md text-[20px] font-medium hover:bg-white/80" to="/mypage">마이페이지</Link>
                     </li>
                     <li>
-                        <Link className="px-10 py-2 rounded-md text-[35px] font-medium hover:bg-white/80" to="/">로그아웃</Link>
+                        <Link className="px-10 py-2 rounded-md text-[20px] font-medium hover:bg-white/80" to="/">로그아웃</Link>
                     </li>
                     </ul>
                 </div>

@@ -192,3 +192,180 @@
 .signup-btn:hover {
   background-color: #bebfbe;
 }
+/* 기본 레이아웃 및 폼 컨테이너 */
+.mypage-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+    font-family: Arial, sans-serif;
+}
+
+/* 상단 헤더 스타일 */
+.mypage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+.mypage-header .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.mypage-header nav span {
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* 폼 스타일 */
+.mypage-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.input-row {
+    display: flex;
+    width: 100%;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.input-row .input-group {
+    width: 50%;
+}
+
+.full-width {
+    width: 100%;
+}
+
+label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.text-input, .textarea-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+}
+
+.textarea-input {
+    resize: vertical;
+}
+
+/* 태그/버튼 그룹 스타일 */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-button {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: #eee;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.tag-button.selected {
+    background-color: #4CAF50; /* 선택된 버튼의 색상 */
+    color: white;
+    border-color: #4CAF50;
+    font-weight: bold;
+}
+
+/* MBTI 버튼 스타일 (선택 시 더 진한 색) */
+.mbti-button:not(.selected) {
+    background-color: #ddd;
+    border-color: #ddd;
+}
+.tag-button.mbti-button.selected {
+    background-color: #17a2b8; /* MBTI는 다른 색으로 구분 */
+    border-color: #17a2b8;
+}
+
+/* 자격증 섹션 스타일 */
+.qualification-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-height: 40px; /* 입력 필드와 높이 맞추기 */
+    background-color: white;
+}
+
+.qual-tag {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background-color: #d1ecf1; /* Light blue background */
+    border-radius: 4px;
+    font-size: 14px;
+    color: #0c5460;
+}
+
+.remove-qual-btn {
+    background: none;
+    border: none;
+    color: #0c5460;
+    margin-left: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* 하단 버튼 */
+.button-footer {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    margin-top: 30px;
+    gap: 10px;
+}
+
+.action-button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+.action-button:hover {
+    opacity: 0.9;
+}
+
+.temp-save {
+    background-color: #bdbdbd; /* 임시 저장 버튼 색상 */
+    color: white;
+}
+
+.save {
+    background-color: #909090; /* 저장 버튼 색상 */
+    color: white;
+}
