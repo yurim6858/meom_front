@@ -5,7 +5,7 @@ function Navigation() {
         <nav className="bg-white/80 dark:text-zinc-100 shadow-md">
             <div className="container max-w-[1280px] mx-auto px-4">
                 <div className="flex justify-between items-center py-3">
-                    <Link to="/" className="inline-flex items-center">
+                    <Link to="/main" className="inline-flex items-center">
                         <img src={`${import.meta.env.BASE_URL}image.png`} alt="Logo" className="h-8 w-auto" />
                     </Link>
                     

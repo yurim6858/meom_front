@@ -13,19 +13,23 @@ import MyPage from "./pages/MyPage";
 
 function App() {
   return (
-    <Layout>
+    
       <Routes>
         <Route path="/" element={<LandingPage/>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path='/signup' element={<SignupPage/>}/>
+
+        <Route element={<Layout />}>
         <Route path='/main' element={<DashBoard/>}/>
         <Route path='/recruitments' element={<MatchingPage/>} />
         <Route path='/recruitments/:id' element={<MatchingDetailPage/>} />
         <Route path='/recruitments/new' element={<RecruitmentPage/>} />
         <Route path='/review' element={<ReviewPage/>} />
         <Route path='/mypage' element={<MyPage/>} />
+        </Route>
       </Routes>
-    </Layout>
+      
+    
   )
 }
 
