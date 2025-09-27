@@ -73,21 +73,12 @@ const MyPage = () => {
 
     return (
         <div className="mypage-container">
-            {/* 상단 메뉴 (간소화) */}
-            <header className="mypage-header">
-                <div className="logo">M</div>
-                <nav>
-                    <span>개인 프로젝트</span>
-                    <span>팀 프로젝트</span>
-                    <span>매장</span>
-                    <span>마이페이지</span>
-                    <span>로그아웃</span>
-                </nav>
-            </header>
             
+         
+      
             <form onSubmit={(e) => e.preventDefault()} className="mypage-form">
                 
-                {/* 1. 이름 / 닉네임, 이메일 */}
+                
                 <div className="input-row">
                     <div className="input-group">
                         <label htmlFor="nameNickname">이름 / 닉네임</label>
@@ -113,7 +104,7 @@ const MyPage = () => {
                     </div>
                 </div>
 
-                {/* 2. 나의 강점*나의 자기 소개 (지원 동기) */}
+              
                 <div className="input-group full-width">
                     <label htmlFor="motiveIntro">나의 강점*나의 자기 소개</label>
                     <input
@@ -126,7 +117,7 @@ const MyPage = () => {
                     />
                 </div>
                 
-                {/* 3. 지원 동기 소개 (간소화) */}
+                
                 <div className="input-group full-width">
                     <label htmlFor="motiveIntro">지원 동기 소개</label>
                     <input
@@ -139,7 +130,7 @@ const MyPage = () => {
                     />
                 </div>
 
-                {/* 4. 나의 강점 (버튼 그룹) */}
+               
                 <div className="input-group full-width">
                     <label>나의 강점</label>
                     <div className="button-group strength-group">
@@ -156,7 +147,7 @@ const MyPage = () => {
                     </div>
                 </div>
 
-                {/* 5. 나의 MBTI (선택) */}
+                
                 <div className="input-group full-width">
                     <label>나의 MBTI(선택)</label>
                     <div className="button-group mbti-group">
@@ -173,7 +164,7 @@ const MyPage = () => {
                     </div>
                 </div>
 
-                {/* 6. 자기소개서 (Textarea) */}
+                
                 <div className="input-group full-width self-intro-section">
                     <label htmlFor="selfIntroduction">자기소개서</label>
                     <textarea
@@ -186,7 +177,7 @@ const MyPage = () => {
                     ></textarea>
                 </div>
 
-                {/* 7. 자격증 입력 */}
+                
                 <div className="input-group full-width qualification-section">
                     <label htmlFor="newQualification">자격증</label>
                     <input
@@ -210,7 +201,7 @@ const MyPage = () => {
                     </div>
                 </div>
 
-                {/* 하단 버튼 */}
+               
                 <div className="button-footer">
                     <button type="button" className="action-button temp-save" onClick={() => handleSave('임시 저장')}>
                         임시 저장
