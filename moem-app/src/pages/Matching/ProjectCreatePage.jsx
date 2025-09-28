@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const MAX_TITLE = 60;
 const MAX_INTRO = 100;
@@ -8,25 +8,32 @@ const MAX_DESCRIPTION = 1200;
 const ROLE_PRESET = ["Frontend", "Backend", "AI/ML", "Designer", "PM", "Fullstack"];
 const WORK_STYLES = ["온라인", "오프라인", "하이브리드"];
 
-export default function EditRecruitmentPage() {
-  const { id } = useParams();
+export default function ProjectCreatePage() {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
 
   const [title, setTitle] = useState("");
   const [intro, setIntro] = useState("");
   const [description, setDescription] = useState("");
   const [tagsText, setTagsText] = useState(""); 
   const [deadline, setDeadline] = useState(""); 
-  const [username, setUsername] = useState("");
-
   const [workStyle, setWorkStyle] = useState("");
   const [contactType, setContactType] = useState("email");
   const [contactValue, setContactValue] = useState("");
   const [positions, setPositions] = useState([{ role: "", headcount: 1 }]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({});
+
+  // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+    } else {
+      // 로그인한 사용자 정보로 자동 채우기
+      setContactValue(currentUser.email);
+    }
+  }, [currentUser, navigate]);
 
   const tags = Array.from(
     new Set(
@@ -39,95 +46,51 @@ export default function EditRecruitmentPage() {
 
   const todayISO = new Date().toLocaleDateString("sv-SE");
 
-  // 기존 데이터 로드
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const res = await fetch(`http://localhost:8080/api/recruitments/${id}`);
-        if (!res.ok) {
-          throw new Error("데이터를 불러올 수 없습니다.");
-        }
-        const data = await res.json();
-        
-        setTitle(data.title || "");
-        setIntro(data.intro || "");
-        setDescription(data.description || "");
-        setTagsText(data.tags ? data.tags.join(", ") : "");
-        setDeadline(data.deadline || "");
-        setUsername(data.username || "");
-        setWorkStyle(data.workStyle || "");
-        setContactType(data.contactType || "email");
-        setContactValue(data.contactValue || "");
-        setPositions(data.positions && data.positions.length > 0 
-          ? data.positions.map(p => ({ role: p.role, headcount: p.headcount }))
-          : [{ role: "", headcount: 1 }]
-        );
-      } catch (error) {
-        console.error("데이터 로드 실패:", error);
-        alert("데이터를 불러오는데 실패했습니다.");
-        navigate("/recruitments");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    if (id) {
-      fetchData();
-    }
-  }, [id, navigate]);
-
-  // 포지션 관리 함수들
+  // ---------------------------
+  // 조작 함수 1) 행 추가
+  // ---------------------------
   function addPositionRow() {
+    // previousPositions는 "이전 상태값"을 리액트가 넣어주는 인자 (이름은 임의)
     setPositions((previousPositions) => [
       ...previousPositions,
       { role: "", headcount: 1 },
     ]);
   }
 
+  // ---------------------------
+  // 조작 함수 2) 특정 행 삭제
+  // ---------------------------
   function removePositionRow(targetIndex) {
     setPositions((previousPositions) =>
       previousPositions.filter((_, currentIndex) => currentIndex !== targetIndex)
     );
   }
 
+  // ---------------------------
+  // 조작 함수 3) 특정 행의 특정 필드 변경
+  // ---------------------------
   function changePositionField(targetIndex, fieldKey, nextValue) {
+    // 핵심: 원본을 직접 바꾸지 말고 map으로 새 배열을 만들어 반환
     setPositions((previousPositions) =>
       previousPositions.map((positionItem, currentIndex) => {
-        if (currentIndex !== targetIndex) return positionItem;
+        if (currentIndex !== targetIndex) return positionItem; // 다른 행은 그대로
+        // 대상 행만 얕은 복사 후 필드 값 교체 → 새 객체 참조가 되므로 변경 감지 가능
         return { ...positionItem, [fieldKey]: nextValue };
       })
     );
   }
 
-  // 수정 제출
+  // 제출
   async function handleSubmit(event) {
     event.preventDefault();
 
-    const nextErrors = {};
-    if (!title.trim()) nextErrors.title = "제목을 입력해 주세요.";
-    else if (title.trim().length > MAX_TITLE) nextErrors.title = `제목은 최대 ${MAX_TITLE}자입니다.`;
-
-    if (!intro.trim()) nextErrors.intro = "한줄 소개를 입력해 주세요.";
-    else if (intro.trim().length > MAX_INTRO) nextErrors.intro = `한줄 소개는 최대 ${MAX_INTRO}자입니다.`;
-
-    if (!description.trim()) nextErrors.description = "설명을 입력해 주세요.";
-    else if (description.trim().length > MAX_DESCRIPTION)
-      nextErrors.description = `설명은 최대 ${MAX_DESCRIPTION}자입니다.`;
-
-    if (!deadline) nextErrors.deadline = "마감일을 선택해 주세요.";
-    else if (deadline < todayISO) nextErrors.deadline = "마감일은 오늘 이후여야 합니다.";
-
-    if (!username.trim()) nextErrors.username = "작성자 이름을 입력해 주세요.";
-
-    setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    0
 
     try {
       setIsSubmitting(true);
       
-      const response = await fetch(`http://localhost:8080/api/recruitments/${id}`, {
-        method: "PUT",
+      const response = await fetch("http://localhost:8080/api/recruitments", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title,
@@ -135,22 +98,26 @@ export default function EditRecruitmentPage() {
           description,
           tags,
           deadline,
-          username,
+          username: currentUser.name, // 로그인한 사용자 이름 사용
           positions: positions.filter(p => p.role.trim() !== ""),
           workStyle,
           contactType,
           contactValue,
-          collaborationPeriod: "1개월 ~ 3개월"
-        }),
+          collaborationPeriod: "1개월 ~ 3개월" // 기본값 설정
+        })
       });
 
       if (!response.ok) {
-        alert("수정에 실패했어요. 입력값을 확인해 주세요.");
+        alert("등록에 실패했어요. 입력값을 확인해 주세요.");
         return;
       }
 
-      alert("수정이 완료되었습니다.");
-      navigate(`/recruitments/${id}`);
+      const saved = await response.json();
+      if (!saved?.id) {
+        alert("등록은 되었지만 상세 페이지 이동 정보를 확인하지 못했습니다.");
+        return;
+      }
+      navigate(`/recruitments/${saved.id}`);
     } catch (unknownError) {
       console.error(unknownError);
       alert("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
@@ -159,28 +126,15 @@ export default function EditRecruitmentPage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <section className="scroll-mt-[72px]">
-        <div className="container mx-auto px-4 py-16 text-center">
-          <div className="flex justify-center items-center">
-            <LoadingSpinner size="lg" />
-            <span className="ml-3 text-sm text-zinc-600 dark:text-zinc-400">데이터를 불러오는 중...</span>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <section className="scroll-mt-[72px]">
       <div className="container max-w-[1280px] mx-auto px-4 py-8 sm:py-10">
         {/* 상단 */}
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">매칭 공고 수정</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">프로젝트 공고 등록</h1>
           <button
             type="button"
-            onClick={() => navigate(`/recruitments/${id}`)}
+            onClick={() => navigate(-1)}
             className="rounded-lg border border-black/10 px-3 py-1.5 text-sm hover:bg-zinc-50 dark:border-white/10 dark:hover:bg-zinc-800"
           >
             ← 돌아가기
@@ -256,7 +210,7 @@ export default function EditRecruitmentPage() {
             )}
           </div>
 
-          {/* 모집 포지션/인원 */}
+          {/* 모집 포지션/인원 (화면용) */}
           <label className="block text-sm font-medium mb-2">모집 포지션/인원 (선택)</label>
           <div className="space-y-3 mb-6">
             {positions.map((positionItem, positionIndex) => (
@@ -313,8 +267,8 @@ export default function EditRecruitmentPage() {
             ))}
           </div>
 
-          {/* 협업 방식 / 마감일 / 작성자 */}
-          <div className="grid gap-4 sm:grid-cols-3 mb-6">
+          {/* 협업 방식 / 마감일 */}
+          <div className="grid gap-4 sm:grid-cols-2 mb-6">
             <div>
               <label className="block text-sm font-medium mb-1">협업 방식 (선택)</label>
               <select
@@ -340,20 +294,9 @@ export default function EditRecruitmentPage() {
               />
               <div className="mt-1 text-xs text-red-600">{errors.deadline}</div>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">작성자 *</label>
-              <input
-                value={username}
-                onChange={(event) => setUsername(event.target.value)}
-                placeholder="예) 민지"
-                className="w-full rounded-xl border px-3 py-2 text-sm"
-              />
-              <div className="mt-1 text-xs text-red-600">{errors.username}</div>
-            </div>
           </div>
 
-          {/* 연락 수단 */}
+          {/* 연락 수단 (화면용) */}
           <div className="grid gap-4 sm:grid-cols-3 mb-6">
             <div>
               <label className="block text-sm font-medium mb-1">연락 수단 (선택)</label>
@@ -385,11 +328,11 @@ export default function EditRecruitmentPage() {
               disabled={isSubmitting}
               className="rounded-xl bg-black px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
             >
-              {isSubmitting ? "수정 중..." : "수정하기"}
+              {isSubmitting ? "등록 중..." : "등록하기"}
             </button>
             <button
               type="button"
-              onClick={() => navigate(`/recruitments/${id}`)}
+              onClick={() => navigate(-1)}
               className="rounded-xl border px-4 py-2 text-sm"
             >
               취소

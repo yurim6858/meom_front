@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import { useAuth } from "../../contexts/AuthContext";
 
-export default function MatchingDetailPage() {
+export default function ProjectDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
+  
   const [posting, setPosting] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -302,18 +305,26 @@ export default function MatchingDetailPage() {
                   </button>
                   
                   <div className="grid grid-cols-2 gap-2">
-                    <button
-                      className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                      onClick={() => navigate(`/recruitments/${id}/edit`)}
-                    >
-                      수정
-                    </button>
-                    <button
-                      className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                      onClick={handleDelete}
-                    >
-                      삭제
-                    </button>
+                    {currentUser && posting && currentUser.name === posting.username ? (
+                      <>
+                        <button
+                          className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                          onClick={() => navigate(`/recruitments/${id}/edit`)}
+                        >
+                          수정
+                        </button>
+                        <button
+                          className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
+                          onClick={handleDelete}
+                        >
+                          삭제
+                        </button>
+                      </>
+                    ) : (
+                      <div className="col-span-2 text-center text-sm text-gray-500 dark:text-gray-400">
+                        {currentUser ? '본인의 공고만 수정/삭제할 수 있습니다' : '로그인이 필요합니다'}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -324,4 +335,3 @@ export default function MatchingDetailPage() {
     </section>
   );
 }
-

@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
 const MAX_USERNAME = 20;
 const MAX_INTRO = 100;
 const MAX_BIO = 1000;
 const SKILL_PRESET = ["React", "Vue", "Angular", "TypeScript", "JavaScript", "Node.js", "Python", "Java", "Spring Boot", "Django", "Flask", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Docker", "Kubernetes", "AWS", "GCP", "Azure", "Git", "Figma", "Photoshop", "Illustrator"];
 
-export default function UserRegisterPage() {
+export default function UserCreatePage() {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
 
-  const [username, setUsername] = useState("");
+  const [name, setName] = useState("");
   const [intro, setIntro] = useState("");
   const [bio, setBio] = useState("");
   const [skillsText, setSkillsText] = useState("");
@@ -22,6 +24,27 @@ export default function UserRegisterPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+  useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+    } else {
+      // 이미 등록된 프로필이 있는지 확인
+      const savedUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
+      const existingProfile = savedUsers.find(user => user.id === currentUser.id);
+      
+      if (existingProfile) {
+        alert('이미 등록된 프로필이 있습니다. 수정하려면 프로필 상세 페이지에서 수정 버튼을 클릭하세요.');
+        navigate('/users');
+        return;
+      }
+      
+      // 로그인한 사용자 정보로 자동 채우기
+      setName(currentUser.name);
+      setContactValue(currentUser.email);
+    }
+  }, [currentUser, navigate]);
 
   const skills = Array.from(
     new Set(
@@ -41,8 +64,8 @@ export default function UserRegisterPage() {
     event.preventDefault();
 
     const nextErrors = {};
-    if (!username.trim()) nextErrors.username = "닉네임을 입력해 주세요.";
-    else if (username.trim().length > MAX_USERNAME) nextErrors.username = `닉네임은 최대 ${MAX_USERNAME}자입니다.`;
+    if (!name.trim()) nextErrors.name = "이름을 입력해 주세요.";
+    else if (name.trim().length > MAX_USERNAME) nextErrors.name = `이름은 최대 ${MAX_USERNAME}자입니다.`;
 
     if (!intro.trim()) nextErrors.intro = "한줄 소개를 입력해 주세요.";
     else if (intro.trim().length > MAX_INTRO) nextErrors.intro = `한줄 소개는 최대 ${MAX_INTRO}자입니다.`;
@@ -63,8 +86,9 @@ export default function UserRegisterPage() {
       
       // 임시로 로컬 스토리지에 저장 (실제 API 연결 시 수정 필요)
       const userData = {
-        id: Date.now(), // 임시 ID
-        username,
+        id: currentUser.id, // 로그인한 사용자의 ID 사용
+        username: name, // 이름을 username으로 사용
+        name: name,
         intro,
         bio,
         skills,
@@ -113,18 +137,17 @@ export default function UserRegisterPage() {
           noValidate
           className="rounded-2xl border border-black/10 bg-white/60 p-6 shadow-sm backdrop-blur dark:border-white/10 dark:bg-zinc-900/60"
         >
-          {/* 닉네임 */}
-          <label className="block text-sm font-medium mb-1">닉네임 *</label>
+          {/* 이름 */}
+          <label className="block text-sm font-medium mb-1">이름 *</label>
           <input
-            value={username}
-            onChange={(event) => setUsername(event.target.value)}
-            placeholder="예) 민지"
-            maxLength={MAX_USERNAME}
-            className="w-full rounded-xl border px-3 py-2 text-sm mb-1"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            className="w-full rounded-xl border px-3 py-2 text-sm mb-1 bg-gray-50"
+            disabled
           />
           <div className="flex justify-between text-xs mb-4">
-            <span className="text-red-600">{errors.username || "\u00A0"}</span>
-            <span className="text-zinc-500">{username.length}/{MAX_USERNAME}</span>
+            <span className="text-blue-600">로그인한 사용자의 이름이 자동으로 입력됩니다</span>
+            <span className="text-zinc-500">{name.length}/{MAX_USERNAME}</span>
           </div>
 
           {/* 한줄 소개 */}
@@ -284,4 +307,3 @@ export default function UserRegisterPage() {
     </section>
   );
 }
-

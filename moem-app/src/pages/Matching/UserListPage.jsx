@@ -1,32 +1,20 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import MessageModal from "../../components/shared/MessageModal";
+import { useAuth } from "../../contexts/AuthContext";
 
-export const MOCK_USERS = [
-  {
-    id: 1,
-    username: "민지",
-    intro: "프론트엔드 위주, 디자인 시스템 좋아해요.",
-    skills: ["React", "TypeScript", "TailwindCSS"],
-  },
-  {
-    id: 2,
-    username: "현수",
-    intro: "백엔드/인프라 관심. 성능 최적화 좋아합니다.",
-    skills: ["Spring Boot", "JPA", "AWS"],
-  },
-];
-
-const MatchingUserPage = () => {
+const UserListPage = () => {
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [query, setQuery] = useState("");
-  const [users, setUsers] = useState(MOCK_USERS);
+  const [users, setUsers] = useState([]);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   // 컴포넌트 마운트 시 로컬 스토리지에서 유저 데이터 로드
   React.useEffect(() => {
     const savedUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
-    if (savedUsers.length > 0) {
-      setUsers([...MOCK_USERS, ...savedUsers]);
-    }
+    setUsers(savedUsers);
   }, []);
 
   const filtered = useMemo(() => {
@@ -42,7 +30,45 @@ const MatchingUserPage = () => {
   }, [query, users]);
 
   const handleMessage = (user) => {
-    alert(`${user.username}님에게 메시지를 보낼 수 있는 기능은 곧 연결됩니다!`);
+    if (currentUser && currentUser.id === user.id) {
+      alert('자신에게는 메시지를 보낼 수 없습니다.');
+      return;
+    }
+    setSelectedUser(user);
+    setIsMessageModalOpen(true);
+  };
+
+  const handleSendMessage = async (content) => {
+    if (!currentUser) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
+    if (currentUser.id === selectedUser.id) {
+      alert('자신에게는 메시지를 보낼 수 없습니다.');
+      return;
+    }
+
+    const newMessage = {
+      id: `msg_${Date.now()}`,
+      senderId: currentUser.id,
+      receiverId: selectedUser.id,
+      senderName: currentUser.name,
+      receiverName: selectedUser.username,
+      content,
+      timestamp: new Date().toISOString(),
+      isRead: false
+    };
+
+    // localStorage에 저장
+    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+    messages.push(newMessage);
+    localStorage.setItem('messages', JSON.stringify(messages));
+
+    alert('메시지가 전송되었습니다!');
+    // 메시지 목록 페이지로 이동 (선택사항)
+    // navigate('/messages');
   };
 
   const handleUserClick = (user) => {
@@ -120,15 +146,21 @@ const MatchingUserPage = () => {
                     상세보기 →
                   </div>
                   <div className="flex gap-2">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleMessage(user);
-                      }}
-                      className="rounded-xl bg-gray-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
-                    >
-                      메시지
-                    </button>
+                    {currentUser && currentUser.id !== user.id ? (
+                      <button
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleMessage(user);
+                        }}
+                        className="rounded-xl bg-gray-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-700"
+                      >
+                        메시지
+                      </button>
+                    ) : (
+                      <div className="rounded-xl bg-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 text-center">
+                        {currentUser && currentUser.id === user.id ? '본인' : '로그인 필요'}
+                      </div>
+                    )}
                     <button
                       onClick={(event) => {
                         event.stopPropagation();
@@ -144,9 +176,20 @@ const MatchingUserPage = () => {
             ))}
           </ul>
         )}
+
+        {/* 메시지 모달 */}
+        <MessageModal
+          isOpen={isMessageModalOpen}
+          onClose={() => {
+            setIsMessageModalOpen(false);
+            setSelectedUser(null);
+          }}
+          receiver={selectedUser}
+          onSend={handleSendMessage}
+        />
       </div>
     </section>
   );
-}
+};
 
-export default MatchingUserPage
+export default UserListPage;

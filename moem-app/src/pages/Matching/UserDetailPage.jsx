@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import MessageModal from "../../components/shared/MessageModal";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function UserDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser } = useAuth();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   // 유저 상세 조회
   useEffect(() => {
@@ -23,78 +27,7 @@ export default function UserDetailPage() {
         if (foundUser) {
           setUser(foundUser);
         } else {
-          // 기본 목업 데이터 (ID가 1, 2인 경우)
-          const defaultUsers = {
-            1: {
-              id: 1,
-              username: "민지",
-              intro: "프론트엔드 위주, 디자인 시스템 좋아해요. 사용자 경험을 중시하며 깔끔한 코드를 추구합니다.",
-              skills: ["React", "TypeScript", "TailwindCSS", "Next.js", "Figma"],
-              experience: "3년",
-              location: "서울",
-              availability: "주 3-4회",
-              portfolio: "https://github.com/minji-dev",
-              contactType: "email",
-              contactValue: "minji@example.com",
-              bio: `안녕하세요! 프론트엔드 개발자 민지입니다.
-
-주로 React와 TypeScript를 사용하여 웹 애플리케이션을 개발하고 있습니다. 
-사용자 경험을 중시하며, 깔끔하고 유지보수하기 쉬운 코드를 작성하는 것을 목표로 합니다.
-
-최근에는 디자인 시스템 구축과 컴포넌트 최적화에 관심이 많습니다.
-함께 의미있는 프로젝트를 만들어가고 싶습니다!`,
-              projects: [
-                {
-                  name: "E-commerce Platform",
-                  description: "React와 TypeScript로 개발한 온라인 쇼핑몰",
-                  tech: ["React", "TypeScript", "Redux", "Styled Components"]
-                },
-                {
-                  name: "Task Management App",
-                  description: "팀 협업을 위한 태스크 관리 애플리케이션",
-                  tech: ["Next.js", "Prisma", "PostgreSQL", "TailwindCSS"]
-                }
-              ]
-            },
-            2: {
-              id: 2,
-              username: "현수",
-              intro: "백엔드/인프라 관심. 성능 최적화 좋아합니다.",
-              skills: ["Spring Boot", "JPA", "AWS", "Docker", "Kubernetes"],
-              experience: "5년",
-              location: "경기",
-              availability: "주 5회 이상",
-              portfolio: "https://github.com/hyunsoo-dev",
-              contactType: "discord",
-              contactValue: "hyunsoo#1234",
-              bio: `안녕하세요! 백엔드 개발자 현수입니다.
-
-Spring Boot와 JPA를 주로 사용하여 백엔드 시스템을 개발하고 있습니다.
-성능 최적화와 확장 가능한 아키텍처 설계에 관심이 많습니다.
-
-최근에는 클라우드 인프라와 DevOps에 집중하고 있으며,
-안정적이고 효율적인 시스템 구축을 목표로 합니다.`,
-              projects: [
-                {
-                  name: "Microservices Platform",
-                  description: "Spring Boot 기반 마이크로서비스 아키텍처",
-                  tech: ["Spring Boot", "Docker", "Kubernetes", "Redis"]
-                },
-                {
-                  name: "API Gateway",
-                  description: "대용량 트래픽 처리를 위한 API 게이트웨이",
-                  tech: ["Spring Cloud Gateway", "Redis", "AWS"]
-                }
-              ]
-            }
-          };
-          
-          const defaultUser = defaultUsers[parseInt(id)];
-          if (defaultUser) {
-            setUser(defaultUser);
-          } else {
-            throw new Error("NOT_FOUND");
-          }
+          throw new Error("NOT_FOUND");
         }
       } catch (err) {
         console.error("유저 상세 조회 실패:", err);
@@ -115,7 +48,68 @@ Spring Boot와 JPA를 주로 사용하여 백엔드 시스템을 개발하고 �
   };
 
   const handleMessage = () => {
-    alert(`${user.username}님에게 메시지를 보낼 수 있는 기능은 곧 연결됩니다!`);
+    if (currentUser && user && currentUser.id === user.id) {
+      alert('자신에게는 메시지를 보낼 수 없습니다.');
+      return;
+    }
+    setIsMessageModalOpen(true);
+  };
+
+  const handleSendMessage = async (content) => {
+    if (!currentUser) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+
+    if (currentUser.id === user.id) {
+      alert('자신에게는 메시지를 보낼 수 없습니다.');
+      return;
+    }
+
+    const newMessage = {
+      id: `msg_${Date.now()}`,
+      senderId: currentUser.id,
+      receiverId: user.id,
+      senderName: currentUser.name,
+      receiverName: user.username,
+      content,
+      timestamp: new Date().toISOString(),
+      isRead: false
+    };
+
+    // localStorage에 저장
+    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
+    messages.push(newMessage);
+    localStorage.setItem('messages', JSON.stringify(messages));
+
+    alert('메시지가 전송되었습니다!');
+    // 메시지 목록 페이지로 이동 (선택사항)
+    // navigate('/messages');
+  };
+
+  const handleEdit = () => {
+    navigate(`/users/${id}/edit`);
+  };
+
+  const handleDelete = () => {
+    if (!currentUser || !user) return;
+    
+    // 본인의 프로필만 삭제 가능
+    if (currentUser.id !== user.id) {
+      alert('본인의 프로필만 삭제할 수 있습니다.');
+      return;
+    }
+
+    if (window.confirm('정말로 프로필을 삭제하시겠습니까?')) {
+      // 로컬 스토리지에서 유저 삭제
+      const savedUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
+      const updatedUsers = savedUsers.filter(u => u.id !== parseInt(id));
+      localStorage.setItem('mockUsers', JSON.stringify(updatedUsers));
+      
+      alert('프로필이 삭제되었습니다.');
+      navigate('/users');
+    }
   };
 
   if (loading) {
@@ -355,12 +349,18 @@ Spring Boot와 JPA를 주로 사용하여 백엔드 시스템을 개발하고 �
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">액션</h3>
                 <div className="space-y-3">
-                  <button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                    onClick={handleMessage}
-                  >
-                    메시지 보내기
-                  </button>
+                  {currentUser && user && currentUser.id !== user.id ? (
+                    <button
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                      onClick={handleMessage}
+                    >
+                      메시지 보내기
+                    </button>
+                  ) : (
+                    <div className="w-full bg-gray-300 text-gray-500 font-semibold py-3 px-4 rounded-xl text-center">
+                      {currentUser && user && currentUser.id === user.id ? '자신에게는 메시지를 보낼 수 없습니다' : '로그인이 필요합니다'}
+                    </div>
+                  )}
                   
                   <button
                     className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
@@ -368,12 +368,38 @@ Spring Boot와 JPA를 주로 사용하여 백엔드 시스템을 개발하고 �
                   >
                     프로젝트 제안하기
                   </button>
+                  
+                  {/* 본인의 프로필인 경우 수정/삭제 버튼 표시 */}
+                  {currentUser && user && currentUser.id === user.id && (
+                    <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                      <button
+                        className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                        onClick={handleEdit}
+                      >
+                        수정
+                      </button>
+                      <button
+                        className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                        onClick={handleDelete}
+                      >
+                        삭제
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* 메시지 모달 */}
+      <MessageModal
+        isOpen={isMessageModalOpen}
+        onClose={() => setIsMessageModalOpen(false)}
+        receiver={user}
+        onSend={handleSendMessage}
+      />
     </section>
   );
 }
