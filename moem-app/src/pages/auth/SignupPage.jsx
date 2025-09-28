@@ -1,8 +1,8 @@
-
 import React, { useState } from 'react'
+import logo from '../../assets/logo.png'
 import { Link } from 'react-router-dom';
 
-const Signupcomponent = () => {
+export const SignupPage = () => {
   const [formData, setFormData] = useState({
     userid: '',
     password: '',
@@ -38,6 +38,8 @@ const Signupcomponent = () => {
   }
   return (
     <div>
+        <img src={logo} className="login-logo"/>
+        <div>
       <form onSubmit={handleSubmit} className="signup-box">
         <div>
           <input
@@ -88,7 +90,6 @@ const Signupcomponent = () => {
         </Link>
       </form>
     </div>
+    </div>
   )
 }
-
-export default Signupcomponent

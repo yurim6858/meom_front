@@ -1,5 +1,8 @@
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 import Footer from './footer';
 import Navigation from './Navigation';
+
 
 function Layout({ children }) {
     return (
@@ -8,8 +11,11 @@ function Layout({ children }) {
             
             <main className="flex-grow overflow-y-auto">
                 <div className="container mx-auto px-4 py-8">
+                      <Outlet /> 
+                 </div>
+                {/* <div className="container mx-auto px-4 py-8">
                     {children}
-                </div>
+                </div> */}
             </main>
 
             <Footer />

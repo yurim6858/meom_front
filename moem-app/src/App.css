@@ -192,3 +192,239 @@
 .signup-btn:hover {
   background-color: #bebfbe;
 }
+/* 기본 레이아웃 및 폼 컨테이너 */
+.mypage-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+    font-family: Arial, sans-serif;
+}
+
+/* 상단 헤더 스타일 */
+.mypage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    color: #444;
+}
+
+.mypage-header .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+}
+
+.mypage-header nav span {
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* 폼 스타일 */
+.mypage-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.input-row {
+    display: flex;
+    width: 100%;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.input-row .input-group {
+    width: 50%;
+}
+
+.full-width {
+    width: 100%;
+}
+
+label {
+    font-weight: bold;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #555;
+}
+
+.text-input, .textarea-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+}
+
+.textarea-input {
+    resize: vertical;
+}
+
+/* 태그/버튼 그룹 스타일 */
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag-button {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    background-color: #eee;
+    cursor: pointer;
+    font-size: 14px;
+    color: #555;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.tag-button.selected {
+    background-color: #4CAF50; /* 선택된 버튼의 색상 */
+    color: white;
+    border-color: #4CAF50;
+    font-weight: bold;
+}
+
+/* MBTI 버튼 스타일 (선택 시 더 진한 색) */
+.mbti-button:not(.selected) {
+    background-color: #ddd;
+    border-color: #ddd;
+}
+.tag-button.mbti-button.selected {
+    background-color: #17a2b8; /* MBTI는 다른 색으로 구분 */
+    border-color: #17a2b8;
+}
+
+/* 자격증 섹션 스타일 */
+.qualification-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-height: 40px; /* 입력 필드와 높이 맞추기 */
+    background-color: white;
+}
+
+.qual-tag {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px;
+    background-color: #d1ecf1; /* Light blue background */
+    border-radius: 4px;
+    font-size: 14px;
+    color: #0c5460;
+}
+
+.remove-qual-btn {
+    background: none;
+    border: none;
+    color: #0c5460;
+    margin-left: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+}
+
+/* 하단 버튼 */
+.button-footer {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end; /* 오른쪽 정렬 */
+    margin-top: 30px;
+    gap: 10px;
+}
+
+.action-button {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: opacity 0.2s;
+}
+
+.action-button:hover {
+    opacity: 0.9;
+}
+
+.temp-save {
+    background-color: #bdbdbd; /* 임시 저장 버튼 색상 */
+    color: white;
+}
+
+.save {
+    background-color: #909090; /* 저장 버튼 색상 */
+    color: white;
+}
+
+
+/* 전체 레이아웃 */
+.dashboard-layout-new {
+    padding: 20px;
+    background-color: #f8f8f8; /* 배경색 */
+    max-width: 600px; /* 이미지처럼 컴포넌트 전체 폭을 줄임 */
+    margin: 0 auto;
+    font-family: 'AppleSDGothicNeo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+    color: #333;
+}
+
+.dashboard-card-new {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.dashboard-card-new h2 {
+    font-size: 15px; /* 이미지에 맞게 조정 */
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+    /* 이미지에는 하단 border 없음 */
+}
+
+/* --- 팀 진행도 스타일 --- */
+.progress-group {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0; /* 이미지에 맞게 패딩 조정 */
+    font-size: 13px; /* 이미지에 맞게 폰트 크기 조정 */
+    color: #555;
+    border-bottom: 1px dashed #eee; /* 점선 구분자 */
+}
+
+.progress-group:last-child {
+    border-bottom: none;
+}
+
+.progress-status {
+    color: #6a5acd; /* 보라색 계열 */
+    cursor: pointer;
+    font-weight: normal; /* 이미지에서는 굵지 않음 */
+}
+
+/* --- 지원 상황 스타일 --- */
+.status-list {
+    font-size: 13px; /* 이미지에 맞게 폰트 크기 조정 */
+    color: #555;
+}
+
+.status-item {
+    padding: 5px 0;
+    line-height: 1.5; /* 줄 간격 */
+}
+
