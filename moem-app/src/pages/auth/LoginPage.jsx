@@ -45,42 +45,47 @@ const LoginPage = () => {
     }
   };
   return (
-    <div>
-        <img src={logo} className="login-logo"/>
-        <div>
-         <form onSubmit={handleLogin} className="login-box"> 
-         <div>
-         <input
-          type="text"
-          name="userid"
-          value={userid}
-          onChange={handleInputChange}
-          placeholder="아이디"
-          className="login-input"
-          required
-        />
-      </div>
-      <div>
-        <input
-          type="password"
-          value={password}
-          name='password'
-          onChange={handleInputChange}
-          placeholder="비밀번호"
-          className="login-input"
-          required
-        />
-      </div>
-      <button type="submit" className='login-btn'>로그인</button>
-      <nav>
-      <Link to="/signup">회원가입 </Link>
-      <span>|</span>
-      <Link to="/signup">아이디 찾기 </Link>
-      <span>|</span>
-      <Link to="/signup">비밀번호 찾기 </Link> 
-      </nav>
-    </form>
-    </div>
+    <div className="min-h-screen bg-gray-50">
+        <div className="flex flex-col items-center justify-center min-h-screen px-4">
+            {/* 로고 */}
+            <div className="mb-12">
+                <img src={logo} className="login-logo"/>
+            </div>
+            
+            {/* 로그인 폼 */}
+            <form onSubmit={handleLogin} className="login-box"> 
+                <div>
+                    <input
+                        type="text"
+                        name="userid"
+                        value={userid}
+                        onChange={handleInputChange}
+                        placeholder="아이디"
+                        className="login-input"
+                        required
+                    />
+                </div>
+                <div>
+                    <input
+                        type="password"
+                        value={password}
+                        name='password'
+                        onChange={handleInputChange}
+                        placeholder="비밀번호"
+                        className="login-input"
+                        required
+                    />
+                </div>
+                <button type="submit" className='login-btn'>로그인</button>
+                <nav>
+                    <Link to="/signup">회원가입</Link>
+                    <span>|</span>
+                    <Link to="/signup">아이디 찾기</Link>
+                    <span>|</span>
+                    <Link to="/signup">비밀번호 찾기</Link> 
+                </nav>
+            </form>
+        </div>
     </div>
   )
 }

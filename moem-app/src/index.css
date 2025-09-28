@@ -1,3 +1,113 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 전역 반응형 스타일 */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden; /* 가로 스크롤 방지 */
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 공통 반응형 컨테이너 */
+.responsive-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* 공통 반응형 박스 */
+.responsive-box {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* 반응형 텍스트 */
+.responsive-text {
+  font-size: clamp(14px, 2.5vw, 18px);
+  line-height: 1.5;
+}
+
+.responsive-title {
+  font-size: clamp(20px, 4vw, 32px);
+  line-height: 1.3;
+}
+
+/* 반응형 버튼 */
+.responsive-btn {
+  padding: clamp(8px, 2vw, 16px) clamp(16px, 4vw, 32px);
+  font-size: clamp(14px, 2.5vw, 18px);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* 반응형 입력 필드 */
+.responsive-input {
+  width: 100%;
+  padding: clamp(8px, 2vw, 16px);
+  font-size: clamp(14px, 2.5vw, 18px);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+/* 반응형 그리드 */
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: clamp(16px, 3vw, 32px);
+}
+
+/* 반응형 플렉스 */
+.responsive-flex {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(8px, 2vw, 16px);
+}
+
+/* 미디어 쿼리 - 태블릿 */
+@media (max-width: 768px) {
+  .responsive-container {
+    padding: 0 16px;
+  }
+  
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .responsive-flex {
+    flex-direction: column;
+  }
+}
+
+/* 미디어 쿼리 - 모바일 */
+@media (max-width: 480px) {
+  .responsive-container {
+    padding: 0 12px;
+  }
+  
+  .responsive-grid {
+    gap: 12px;
+  }
+}
+
+/* 미디어 쿼리 - 매우 작은 화면 */
+@media (max-width: 320px) {
+  .responsive-container {
+    padding: 0 8px;
+  }
+}
