@@ -369,3 +369,62 @@ label {
     background-color: #909090; /* 저장 버튼 색상 */
     color: white;
 }
+
+
+/* 전체 레이아웃 */
+.dashboard-layout-new {
+    padding: 20px;
+    background-color: #f8f8f8; /* 배경색 */
+    max-width: 600px; /* 이미지처럼 컴포넌트 전체 폭을 줄임 */
+    margin: 0 auto;
+    font-family: 'AppleSDGothicNeo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+    color: #333;
+}
+
+.dashboard-card-new {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.dashboard-card-new h2 {
+    font-size: 15px; /* 이미지에 맞게 조정 */
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #333;
+    /* 이미지에는 하단 border 없음 */
+}
+
+/* --- 팀 진행도 스타일 --- */
+.progress-group {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0; /* 이미지에 맞게 패딩 조정 */
+    font-size: 13px; /* 이미지에 맞게 폰트 크기 조정 */
+    color: #555;
+    border-bottom: 1px dashed #eee; /* 점선 구분자 */
+}
+
+.progress-group:last-child {
+    border-bottom: none;
+}
+
+.progress-status {
+    color: #6a5acd; /* 보라색 계열 */
+    cursor: pointer;
+    font-weight: normal; /* 이미지에서는 굵지 않음 */
+}
+
+/* --- 지원 상황 스타일 --- */
+.status-list {
+    font-size: 13px; /* 이미지에 맞게 폰트 크기 조정 */
+    color: #555;
+}
+
+.status-item {
+    padding: 5px 0;
+    line-height: 1.5; /* 줄 간격 */
+}
+
