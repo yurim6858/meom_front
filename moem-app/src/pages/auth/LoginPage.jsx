@@ -39,7 +39,7 @@ const LoginPage = () => {
         name: user.name,
         email: user.email
       });
-      navigate('/recruitments');
+      navigate('/main');
     } else {
       alert('아이디 또는 비밀번호가 잘못되었습니다.');
     }

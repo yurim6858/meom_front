@@ -17,7 +17,7 @@ import ReviewPage from "./pages/ReviewPage";
 import MyPage from "./pages/MyPage";
 
 import LoginPage from "./pages/auth/LoginPage";
-import { Signuppage } from './pages/Signuppage';
+import { SignupPage } from "./pages/auth/SignupPage";
 import { AuthProvider } from './contexts/AuthContext';
 
 function App() {
@@ -26,7 +26,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LandingPage/>} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path='/signup' element={<Signuppage/>}/>
+        <Route path='/signup' element={<SignupPage/>} />
 
         <Route element={<Layout />}>
           <Route path='/main' element={<DashBoard/>}/>
