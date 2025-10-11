@@ -10,7 +10,7 @@ const SearchInput = ({
   return (
     <div className={`relative w-full ${className}`}>
       <svg
-        className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-500"
+        className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 transition-colors duration-200"
         viewBox="0 0 24 24" 
         fill="none" 
         stroke="currentColor" 
@@ -25,7 +25,7 @@ const SearchInput = ({
         onChange={onChange}
         placeholder={placeholder}
         aria-label="검색"
-        className="w-full rounded-xl border border-black/10 bg-white py-3 pl-11 pr-3 text-base outline-none transition focus:ring-2 focus:ring-black/10 dark:border-white/10 dark:bg-zinc-900"
+        className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-3 text-base outline-none transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 dark:border-gray-600 dark:bg-zinc-900 dark:text-white dark:focus:ring-blue-400 dark:focus:border-blue-400 dark:hover:border-gray-500"
         {...props}
       />
     </div>

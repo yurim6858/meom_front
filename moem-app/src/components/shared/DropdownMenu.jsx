@@ -5,12 +5,12 @@ const DropdownMenu = ({ isOpen, onClose }) => {
   const menuItems = [
     {
       title: '프로젝트 탐색',
-      path: '/recruitments',
+      path: '/project-posts',
       icon: '🔍'
     },
     {
       title: '프로젝트 등록',
-      path: '/recruitments/new',
+      path: '/project-posts/new',
       icon: '➕'
     },
     {
@@ -27,7 +27,7 @@ const DropdownMenu = ({ isOpen, onClose }) => {
       title: '내 공고 관리',
       path: '/my-posts',
       icon: '📋'
-    }
+    },
   ];
 
   if (!isOpen) return null;
