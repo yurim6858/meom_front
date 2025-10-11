@@ -59,7 +59,7 @@ function Navigation() {
                         {user ? (
                             <li className="flex items-center space-x-2">
                                 <span className="text-xs md:text-sm text-gray-600 dark:text-gray-400">
-                                    안녕하세요, {user.name}님
+                                    안녕하세요, {user.username}님
                                 </span>
                                 <button 
                                     onClick={handleLogout}

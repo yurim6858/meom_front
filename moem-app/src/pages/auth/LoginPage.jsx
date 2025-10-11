@@ -6,7 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 
 const LoginPage = () => {
-  const [userid, setUserid] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -14,8 +14,8 @@ const LoginPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'userid') {
-      setUserid(value);
+    if (name === 'username') {
+      setUsername(value);
     } else if (name === 'password') {
       setPassword(value);
     }
@@ -25,7 +25,7 @@ const LoginPage = () => {
     e.preventDefault();
 
     try {
-      await login({ username: userid, password }); // AuthContext의 login 사용
+      await login({ username, password }); // AuthContext의 login 사용
       navigate('/main');
       showSuccess('로그인되었습니다!');
     } catch (error) {
@@ -45,11 +45,11 @@ const LoginPage = () => {
             <form onSubmit={handleLogin} className="login-box"> 
                 <div>
                     <input
-                        type="email"
-                        name="userid"
-                        value={userid}
+                        type="text"
+                        name="username"
+                        value={username}
                         onChange={handleInputChange}
-                        placeholder="이메일"
+                        placeholder="이메일 또는 아이디"
                         className="login-input"
                         required
                     />

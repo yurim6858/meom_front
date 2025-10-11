@@ -160,6 +160,29 @@ class AuthAPI extends BaseAPI {
     }
   }
 
+  // 아이디 중복 확인
+  async checkUsername(username) {
+    try {
+      const url = `${this.baseURL}/auth/check-username/${encodeURIComponent(username)}`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const exists = await response.json();
+      return exists;
+    } catch (error) {
+      console.error('아이디 중복 확인 실패:', error);
+      throw error;
+    }
+  }
+
 }
 
 export default AuthAPI;
