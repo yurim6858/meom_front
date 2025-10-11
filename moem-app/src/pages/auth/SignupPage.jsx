@@ -1,53 +1,82 @@
 import React, { useState } from 'react'
 import logo from '../../assets/logo.png'
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const SignupPage = () => {
+  const navigate= useNavigate();
+
   const [formData, setFormData] = useState({
-    userid: '',
+    username: '',
+    nickname:'',
     password: '',
-    confirmPassword: '',
     email: ''
   });
-  const { userid, password, confirmPassword, email } = formData;
+  const { username, nickname, password, email } = formData;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
+ const handleSignup = async (e) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert('비밀번호가 일치하지 않습니다.');
+
+    if (!username.trim() || !nickname.trim() || !password.trim() || !email.trim()) {
+      alert('모든 필드를 입력해주세요.');
       return;
     }
 
-    if (!formData.userid.trim() || !formData.password.trim() || !formData.email.trim()) {
-      alert('모든 필드를 입력해주세요');
-      return;
-    }
-    alert("회원가입이 완료되었습니다");
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          username: formData.username,
+          nickname: formData.nickname, 
+          password: formData.password, 
+          email: formData.email,
+         })
+      });
 
-    setFormData({
-      userid: '',
-      password: '',
-      confirmPassword: '',
-      email: ''
-    })
+      if (response.ok){
+
+        await response.text();
+        alert('회원가입이 완료되었습니다!');
+        navigate("/login");
+      }else {
+
+        alert('회원가입 실패: 중복된 아이디 또는 서버 오류입니다.');
+        }
+      }catch (error) {
+      console.error('회원가입 중 오류:', error);
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    }
   }
+  
+
   return (
     <div>
         <img src={logo} className="login-logo"/>
         <div>
-      <form onSubmit={handleSubmit} className="signup-box">
+      <form onSubmit={handleSignup} className="signup-box">
         <div>
           <input
             type="text"
-            name="userid"
-            value={userid}
+            name="username"
+            value={username}
             onChange={handleChange}
             placeholder="아이디를 입력하세요"
+            className="login-input"
+            required
+          />
+        </div>
+        <div>
+          <input
+            type="text"
+            name="nickname"
+            value={nickname}
+            onChange={handleChange}
+            placeholder="닉네임을 입력하세요"
             className="login-input"
             required
           />
@@ -65,18 +94,7 @@ export const SignupPage = () => {
         </div>
         <div>
           <input
-            type="password"
-            value={confirmPassword}
-            name='confirmPassword'
-            onChange={handleChange}
-            placeholder="비밀번호를 다시 입력하세요"
-            className="login-input"
-            required
-          />
-        </div>
-        <div>
-          <input
-            type="password"
+            type="email"
             value={email}
             name='email'
             onChange={handleChange}
@@ -85,11 +103,10 @@ export const SignupPage = () => {
             required
           />
         </div>
-        <Link to ="/login">
         <button type="submit" className='signup-btn'>회원가입</button>
-        </Link>
+       
       </form>
     </div>
     </div>
   )
-}
+ };
