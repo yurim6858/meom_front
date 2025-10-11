@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
+import { ProjectAPI } from "../../services/api/index";
 
 const MAX_TITLE = 60;
 const MAX_INTRO = 100;
@@ -11,6 +13,8 @@ const WORK_STYLES = ["온라인", "오프라인", "하이브리드"];
 export default function ProjectCreatePage() {
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const { showSuccess, showError } = useToast();
+  const projectAPI = new ProjectAPI();
 
   const [title, setTitle] = useState("");
   const [intro, setIntro] = useState("");
@@ -80,47 +84,66 @@ export default function ProjectCreatePage() {
     );
   }
 
+  // 폼 검증
+  function validateForm() {
+    const newErrors = {};
+    
+    if (!title.trim()) {
+      newErrors.title = "제목을 입력해주세요.";
+    }
+    
+    if (!intro.trim()) {
+      newErrors.intro = "한줄 소개를 입력해주세요.";
+    }
+    
+    if (!description.trim()) {
+      newErrors.description = "설명을 입력해주세요.";
+    }
+    
+    if (!deadline) {
+      newErrors.deadline = "마감일을 선택해주세요.";
+    }
+    
+    setErrors({
+      ...errors,
+      ...newErrors
+    });
+    
+    return Object.keys(newErrors).length === 0;
+  }
+
   // 제출
   async function handleSubmit(event) {
     event.preventDefault();
 
-    0
+    if (!validateForm()) {
+      return;
+    }
 
     try {
       setIsSubmitting(true);
       
-      const response = await fetch("http://localhost:8080/api/recruitments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          intro,
-          description,
-          tags,
-          deadline,
-          username: currentUser.name, // 로그인한 사용자 이름 사용
-          positions: positions.filter(p => p.role.trim() !== ""),
-          workStyle,
-          contactType,
-          contactValue,
-          collaborationPeriod: "1개월 ~ 3개월" // 기본값 설정
-        })
-      });
+      const projectData = {
+        title,
+        intro,
+        description,
+        tags,
+        deadline,
+        creatorId: currentUser.id, // 백엔드에서 요구하는 creatorId 추가
+        username: currentUser.username,
+        positions: positions.filter(p => p.role.trim() !== ""),
+        workStyle,
+        contactType,
+        contactValue,
+        collaborationPeriod: "1개월 ~ 3개월"
+      };
 
-      if (!response.ok) {
-        alert("등록에 실패했어요. 입력값을 확인해 주세요.");
-        return;
-      }
-
-      const saved = await response.json();
-      if (!saved?.id) {
-        alert("등록은 되었지만 상세 페이지 이동 정보를 확인하지 못했습니다.");
-        return;
-      }
-      navigate(`/recruitments/${saved.id}`);
+      await projectAPI.createProject(projectData);
+      showSuccess("프로젝트가 등록되었습니다!");
+      navigate(`/project-posts`);
     } catch (unknownError) {
       console.error(unknownError);
-      alert("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      showError("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
     }

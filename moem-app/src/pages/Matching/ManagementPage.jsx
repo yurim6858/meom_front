@@ -2,9 +2,14 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
+import { useToast } from '../../contexts/ToastContext';
+import { ProjectAPI, UserAPI } from '../../services/api/index';
 
 function ManagementPage() {
     const { user: currentUser } = useAuth();
+    const { showError } = useToast();
+  const projectAPI = new ProjectAPI();
+  const userAPI = new UserAPI();
     const [activeTab, setActiveTab] = useState('project'); // 'project' or 'user'
     const [expandedPost, setExpandedPost] = useState(null);
     const [posts, setPosts] = useState([]);
@@ -21,19 +26,17 @@ function ManagementPage() {
                 setError(null);
                 
                 // 프로젝트 공고 확인
-                const res = await fetch("http://localhost:8080/api/recruitments");
-                if (!res.ok) throw new Error("네트워크 오류");
-                const allPosts = await res.json();
+                const allPosts = await projectAPI.getProjects();
                 
                 const myProjectPosts = allPosts.filter(post => 
-                    post.username === currentUser?.name
+                    post.username === currentUser?.username
                 );
                 setHasProjectPosts(myProjectPosts.length > 0);
                 
                 // 유저 프로필 확인
-                const savedUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
-                const myUserProfiles = savedUsers.filter(user => 
-                    user.id === currentUser?.id
+                const allUsers = await userAPI.getUsers();
+                const myUserProfiles = allUsers.filter(user => 
+                    user.username === currentUser?.username
                 );
                 setHasUserPosts(myUserProfiles.length > 0);
                 
@@ -201,13 +204,13 @@ function ManagementPage() {
                                                                 // 프로젝트 공고 액션
                                                                 <>
                                                                     <Link
-                                                                        to={`/recruitments/${post.id}/edit`}
+                                                                        to={`/project-posts/${post.id}/edit`}
                                                                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
                                                                     >
                                                                         수정
                                                                     </Link>
                                                                     <Link
-                                                                        to={`/recruitments/${post.id}`}
+                                                                        to={`/project-posts/${post.id}`}
                                                                         className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition-colors"
                                                                     >
                                                                         상세보기

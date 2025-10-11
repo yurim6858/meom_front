@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import MessageModal from "../../components/shared/MessageModal";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
+import { UserAPI } from "../../services/api/index";
 
 export default function UserDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const { showSuccess, showError } = useToast();
+  const userAPI = new UserAPI();
+  
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
 
   // 유저 상세 조회
   useEffect(() => {
@@ -20,10 +23,7 @@ export default function UserDetailPage() {
         setLoading(true);
         setError(null);
         
-        // 로컬 스토리지에서 유저 데이터 가져오기
-        const savedUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
-        const foundUser = savedUsers.find(u => u.id === parseInt(id));
-        
+        const foundUser = await userAPI.getUser(id);
         if (foundUser) {
           setUser(foundUser);
         } else {
@@ -43,73 +43,9 @@ export default function UserDetailPage() {
     }
   }, [id]);
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
-
-  const handleMessage = () => {
-    if (currentUser && user && currentUser.id === user.id) {
-      alert('자신에게는 메시지를 보낼 수 없습니다.');
-      return;
-    }
-    setIsMessageModalOpen(true);
-  };
-
-  const handleSendMessage = async (content) => {
-    if (!currentUser) {
-      alert('로그인이 필요합니다.');
-      navigate('/login');
-      return;
-    }
-
-    if (currentUser.id === user.id) {
-      alert('자신에게는 메시지를 보낼 수 없습니다.');
-      return;
-    }
-
-    const newMessage = {
-      id: `msg_${Date.now()}`,
-      senderId: currentUser.id,
-      receiverId: user.id,
-      senderName: currentUser.name,
-      receiverName: user.username,
-      content,
-      timestamp: new Date().toISOString(),
-      isRead: false
-    };
-
-    // localStorage에 저장
-    const messages = JSON.parse(localStorage.getItem('messages') || '[]');
-    messages.push(newMessage);
-    localStorage.setItem('messages', JSON.stringify(messages));
-
-    alert('메시지가 전송되었습니다!');
-    // 메시지 목록 페이지로 이동 (선택사항)
-    // navigate('/messages');
-  };
 
   const handleEdit = () => {
     navigate(`/users/${id}/edit`);
-  };
-
-  const handleDelete = () => {
-    if (!currentUser || !user) return;
-    
-    // 본인의 프로필만 삭제 가능
-    if (currentUser.id !== user.id) {
-      alert('본인의 프로필만 삭제할 수 있습니다.');
-      return;
-    }
-
-    if (window.confirm('정말로 프로필을 삭제하시겠습니까?')) {
-      // 로컬 스토리지에서 유저 삭제
-      const savedUsers = JSON.parse(localStorage.getItem('mockUsers') || '[]');
-      const updatedUsers = savedUsers.filter(u => u.id !== parseInt(id));
-      localStorage.setItem('mockUsers', JSON.stringify(updatedUsers));
-      
-      alert('프로필이 삭제되었습니다.');
-      navigate('/users');
-    }
   };
 
   if (loading) {
@@ -137,7 +73,7 @@ export default function UserDetailPage() {
             onClick={() => navigate("/users")}
             className="mt-6 rounded-lg border border-black/10 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-white/10 dark:hover:bg-zinc-800"
           >
-            ← 목록으로
+          ← 목록으로
           </button>
         </div>
       </section>
@@ -151,9 +87,8 @@ export default function UserDetailPage() {
           <div className="rounded-2xl border border-red-200 bg-red-50 p-10 dark:border-red-800 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400 mb-4">{error}</p>
             <button
-              onClick={handleRetry}
-              className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700"
-            >
+              onClick={() => window.location.reload()}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">
               다시 시도
             </button>
           </div>
@@ -204,10 +139,10 @@ export default function UserDetailPage() {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                      경력 {user.experience}
+                      작업방식: {user.workStyle || "미정"}
                     </span>
                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                      위치: {user.location}
+                      협업기간: {user.collaborationPeriod || "미정"}
                     </span>
                   </div>
                 </div>
@@ -220,7 +155,7 @@ export default function UserDetailPage() {
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">자기소개</h2>
                 <div className="prose prose-gray dark:prose-invert max-w-none">
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                    {user.bio}
+                    {user.intro || "등록된 자기소개가 없습니다."}
                   </p>
                 </div>
               </div>
@@ -239,40 +174,12 @@ export default function UserDetailPage() {
                       {skill}
                     </span>
                   ))}
+                  {(!user.skills || user.skills.length === 0) && (
+                    <span className="text-gray-500 dark:text-gray-400">등록된 기술 스택이 없습니다.</span>
+                  )}
                 </div>
               </div>
             </div>
-
-            {/* 프로젝트 경험 카드 */}
-            {user.projects && user.projects.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="p-8">
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">프로젝트 경험</h2>
-                  <div className="space-y-6">
-                    {user.projects.map((project, i) => (
-                      <div key={i} className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                          {project.name}
-                        </h3>
-                        <p className="text-gray-600 dark:text-gray-300 mb-3">
-                          {project.description}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {project.tech.map((tech, j) => (
-                            <span
-                              key={j}
-                              className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded text-xs font-medium"
-                            >
-                              {tech}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
 
           {/* 사이드바 */}
@@ -283,48 +190,26 @@ export default function UserDetailPage() {
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">기본 정보</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">경력</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">이메일</span>
                     <span className="text-sm text-gray-900 dark:text-white">
-                      {user.experience}
+                      {user.email || "미정"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">위치</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">작업 스타일</span>
                     <span className="text-sm text-gray-900 dark:text-white">
-                      {user.location}
+                      {user.workStyle || "미정"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">협업 가능</span>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">협업 기간</span>
                     <span className="text-sm text-gray-900 dark:text-white">
-                      {user.availability}
+                      {user.collaborationPeriod || "미정"}
                     </span>
                   </div>
                 </div>
               </div>
             </div>
-
-            {/* 포트폴리오 카드 */}
-            {user.portfolio && (
-              <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">포트폴리오</h3>
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                    </svg>
-                    <a 
-                      href={user.portfolio} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                    >
-                      GitHub 프로필 보기
-                    </a>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* 연락 정보 카드 */}
             {user.contactType && user.contactValue && (
@@ -349,28 +234,16 @@ export default function UserDetailPage() {
               <div className="p-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">액션</h3>
                 <div className="space-y-3">
-                  {currentUser && user && currentUser.id !== user.id ? (
-                    <button
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                      onClick={handleMessage}
-                    >
-                      메시지 보내기
-                    </button>
-                  ) : (
-                    <div className="w-full bg-gray-300 text-gray-500 font-semibold py-3 px-4 rounded-xl text-center">
-                      {currentUser && user && currentUser.id === user.id ? '자신에게는 메시지를 보낼 수 없습니다' : '로그인이 필요합니다'}
-                    </div>
-                  )}
                   
                   <button
                     className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                    onClick={() => alert("프로젝트 제안 기능은 추후 연결됩니다.")}
+                    onClick={() => showError("프로젝트 제안 기능은 추후 연결됩니다.")}
                   >
                     프로젝트 제안하기
                   </button>
                   
                   {/* 본인의 프로필인 경우 수정/삭제 버튼 표시 */}
-                  {currentUser && user && currentUser.id === user.id && (
+                  {currentUser && user && currentUser.username === user.username && (
                     <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-600">
                       <button
                         className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
@@ -380,7 +253,7 @@ export default function UserDetailPage() {
                       </button>
                       <button
                         className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                        onClick={handleDelete}
+                        onClick={() => showError('삭제 기능은 추후 구현됩니다.')}
                       >
                         삭제
                       </button>
@@ -393,13 +266,6 @@ export default function UserDetailPage() {
         </div>
       </div>
 
-      {/* 메시지 모달 */}
-      <MessageModal
-        isOpen={isMessageModalOpen}
-        onClose={() => setIsMessageModalOpen(false)}
-        receiver={user}
-        onSend={handleSendMessage}
-      />
     </section>
   );
 }

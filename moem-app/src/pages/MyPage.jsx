@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 
 
 const MBTI_TYPES = [
-    "ENFP", "INFP", "ESFP", "ENTP", "ENFJ", "INFP", "ESTP", "ENTJ",
-    "ISFP", "INTP", "ENTJ", "INFJ", "INTJ", "ISTJ", "ISTP", "ISFJ", "ESTJ"
+    "ENFP", "INFP", "ESFP", "ENTP", "ENFJ", "ESTP", "ENTJ",
+    "ISFP", "INTP", "INFJ", "INTJ", "ISTJ", "ISTP", "ISFJ", "ESTJ"
 ];
 
 const STRENGTHS = [

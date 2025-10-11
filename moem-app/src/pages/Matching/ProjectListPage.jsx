@@ -4,6 +4,8 @@ import DdayBadge from "../../components/shared/DdayBadge";
 import InitialBadge from "../../components/shared/InitialBadge";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import SearchInput from "../../components/shared/SearchInput";
+import { useToast } from "../../contexts/ToastContext";
+import { ProjectAPI } from "../../services/api/index";
 
 const ProjectListPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -12,19 +14,21 @@ const ProjectListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { showSuccess, showError } = useToast();
+  const projectAPI = new ProjectAPI();
 
   useEffect(() => {
     const fetchPostings = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("http://localhost:8080/api/recruitments");
-        if (!res.ok) throw new Error("네트워크 오류");
-        const data = await res.json();
+        
+        
+        const data = await projectAPI.getProjects();
         setPostings(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("공고 불러오기 실패:", err);
-        setError("공고를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
+        setError(err.message || "공고를 불러오는데 실패했습니다.");
         setPostings([]);
       } finally {
         setLoading(false);
@@ -51,7 +55,7 @@ const ProjectListPage = () => {
   }, [postings, searchQuery]);
 
   const handleCardClick = (id) => {
-    navigate(`/recruitments/${id}`);
+    navigate(`/project-posts/${id}`);
   };
 
   if (loading) {
@@ -95,7 +99,7 @@ const ProjectListPage = () => {
             </p>
           </div>
           <button
-            onClick={() => navigate("/recruitments/new")}
+            onClick={() => navigate("/project-posts/new")}
             className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
           >
             공고 등록
@@ -106,7 +110,7 @@ const ProjectListPage = () => {
         <div className="mb-6">
           <SearchInput
             value={searchQuery}
-            onChange={setSearchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
             placeholder="프로젝트명, 기술스택, 작성자로 검색..."
           />
         </div>
@@ -119,7 +123,7 @@ const ProjectListPage = () => {
             </div>
             {!searchQuery && (
               <button
-                onClick={() => navigate("/recruitments/new")}
+                onClick={() => navigate("/project-posts/new")}
                 className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 첫 공고 등록하기

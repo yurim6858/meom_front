@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 const LoginPage = () => {
   const [userid, setUserid] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -19,31 +21,18 @@ const LoginPage = () => {
     }
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    // 간단한 사용자 데이터베이스 (실제로는 서버에서 가져와야 함)
-    const users = [
-      { id: 1, username: 'root', password: '1234', name: '관리자', email: 'admin@example.com' },
-      { id: 2, username: 'minji', password: '1234', name: '민지', email: 'minji@example.com' },
-      { id: 3, username: 'hyunsoo', password: '1234', name: '현수', email: 'hyunsoo@example.com' }
-    ];
-
-    const user = users.find(u => u.username === userid && u.password === password);
-    
-    if (user) {
-      // 로그인 성공 - 사용자 정보 저장
-      login({
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        email: user.email
-      });
+    try {
+      await login({ username: userid, password }); // AuthContext의 login 사용
       navigate('/main');
-    } else {
-      alert('아이디 또는 비밀번호가 잘못되었습니다.');
+      showSuccess('로그인되었습니다!');
+    } catch (error) {
+      showError(error.message);
     }
   };
+  
   return (
     <div className="min-h-screen bg-gray-50">
         <div className="flex flex-col items-center justify-center min-h-screen px-4">
@@ -56,11 +45,11 @@ const LoginPage = () => {
             <form onSubmit={handleLogin} className="login-box"> 
                 <div>
                     <input
-                        type="text"
+                        type="email"
                         name="userid"
                         value={userid}
                         onChange={handleInputChange}
-                        placeholder="아이디"
+                        placeholder="이메일"
                         className="login-input"
                         required
                     />
@@ -90,4 +79,4 @@ const LoginPage = () => {
   )
 }
 
-export default LoginPage
+export default LoginPage;

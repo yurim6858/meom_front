@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
+import ApplicationModal from "../../components/shared/ApplicationModal";
+import ApplicationList from "../../components/shared/ApplicationList";
 import { useAuth } from "../../contexts/AuthContext";
+import { useToast } from "../../contexts/ToastContext";
+import { ProjectAPI, ApplicationAPI } from "../../services/api/index";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user: currentUser } = useAuth();
+  const { showSuccess, showError } = useToast();
+  const projectAPI = new ProjectAPI();
+  const applicationAPI = new ApplicationAPI();
   
   const [posting, setPosting] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
+  const [hasApplied, setHasApplied] = useState(false);
 
   // 상세 조회
   useEffect(() => {
@@ -18,15 +27,19 @@ export default function ProjectDetailPage() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`http://localhost:8080/api/recruitments/${id}`);
-        if (!res.ok) {
-          if (res.status === 404) {
-            throw new Error("NOT_FOUND");
-          }
-          throw new Error("네트워크 오류");
-        }
-        const data = await res.json();
+        const data = await projectAPI.getProject(id);
         setPosting(data);
+        
+        // 지원 여부 확인
+        if (currentUser) {
+          try {
+            const applications = await applicationAPI.getApplicationsByProject(id);
+            const userApplication = applications.find(app => app.applicantUsername === currentUser.username);
+            setHasApplied(!!userApplication);
+          } catch (err) {
+            console.error("지원 여부 확인 실패:", err);
+          }
+        }
       } catch (err) {
         console.error("공고 상세 조회 실패:", err);
         setError(err.message === "NOT_FOUND" ? "NOT_FOUND" : "공고를 불러오는데 실패했습니다.");
@@ -39,7 +52,7 @@ export default function ProjectDetailPage() {
     if (id) {
       fetchPosting();
     }
-  }, [id]);
+  }, [id, currentUser]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -51,20 +64,12 @@ export default function ProjectDetailPage() {
     }
 
     try {
-      const response = await fetch(`http://localhost:8080/api/recruitments/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        alert("삭제에 실패했습니다.");
-        return;
-      }
-
-      alert("공고가 삭제되었습니다.");
-      navigate("/recruitments");
+      await projectAPI.deleteProject(id);
+      showSuccess("공고가 삭제되었습니다.");
+      navigate("/project-posts");
     } catch (error) {
-      console.error("삭제 실패:", error);
-      alert("삭제 중 오류가 발생했습니다.");
+     console.error("삭제 실패:", error);
+      showError("삭제 중 오류가 발생했습니다.");
     }
   };
 
@@ -90,7 +95,7 @@ export default function ProjectDetailPage() {
             주소를 확인하거나 목록으로 돌아가세요.
           </p>
           <button
-            onClick={() => navigate("/recruitments")}
+            onClick={() => navigate("/project-posts")}
             className="mt-6 rounded-lg border border-black/10 px-4 py-2 text-sm hover:bg-zinc-50 dark:border-white/10 dark:hover:bg-zinc-800"
           >
             ← 목록으로
@@ -126,7 +131,7 @@ export default function ProjectDetailPage() {
         {/* 상단 네비게이션 */}
         <div className="mb-6">
           <button
-            onClick={() => navigate("/recruitments")}
+            onClick={() => navigate("/project-posts")}
             className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -297,19 +302,30 @@ export default function ProjectDetailPage() {
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
               <div className="p-6">
                 <div className="space-y-3">
-                  <button
-                    className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md dark:bg-gray-500 dark:hover:bg-gray-600"
-                    onClick={() => alert("지원 폼은 추후 연결됩니다.")}
-                  >
-                    이 팀에 지원하기
-                  </button>
+                  {currentUser && currentUser.username !== posting.username ? (
+                    <button
+                      className={`w-full font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
+                        hasApplied 
+                          ? 'bg-gray-400 text-white cursor-not-allowed' 
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
+                      onClick={() => !hasApplied && setIsApplicationModalOpen(true)}
+                      disabled={hasApplied}
+                    >
+                      {hasApplied ? '이미 지원했습니다' : '이 팀에 지원하기'}
+                    </button>
+                  ) : (
+                    <div className="w-full bg-gray-300 text-gray-500 font-semibold py-3 px-4 rounded-xl text-center">
+                      {currentUser ? '본인의 프로젝트입니다' : '로그인이 필요합니다'}
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-2 gap-2">
-                    {currentUser && posting && currentUser.name === posting.username ? (
+                    {currentUser && posting && currentUser.username === posting.username ? (
                       <>
                         <button
                           className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors duration-200"
-                          onClick={() => navigate(`/recruitments/${id}/edit`)}
+                          onClick={() => navigate(`/project-posts/${id}/edit`)}
                         >
                           수정
                         </button>
@@ -331,7 +347,36 @@ export default function ProjectDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* 지원자 목록 섹션 - 프로젝트 작성자만 볼 수 있음 */}
+        {currentUser && posting && currentUser.username === posting.username && (
+          <div className="mt-8">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+              <div className="p-8">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">지원자 목록</h2>
+                <ApplicationList projectId={id} isOwner={true} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* 지원 모달 */}
+      <ApplicationModal
+        isOpen={isApplicationModalOpen}
+        onClose={() => {
+          setIsApplicationModalOpen(false);
+          // 지원 완료 후 지원 여부 다시 확인
+          if (currentUser) {
+            applicationAPI.getApplicationsByProject(id).then(applications => {
+              const userApplication = applications.find(app => app.applicantUsername === currentUser.username);
+              setHasApplied(!!userApplication);
+            }).catch(console.error);
+          }
+        }}
+        projectId={id}
+        projectTitle={posting?.title}
+      />
     </section>
   );
 }

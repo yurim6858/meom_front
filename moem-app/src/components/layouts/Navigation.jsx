@@ -27,15 +27,15 @@ function Navigation() {
             <div className="container max-w-[1280px] mx-auto px-4">
                 <div className="flex justify-between items-center py-3">
                     <Link to="/main" className="inline-flex items-center">
-                        <img src={`${import.meta.env.BASE_URL}image.png`} alt="Logo" className="h-8 w-auto" />
+                        <img src="/image.png" alt="Logo" className="h-8 w-auto" />
                     </Link>
                     
                     <ul className="flex items-center space-x-2 md:space-x-4">
                         <li>
-                            <Link className="nav-link px-4 md:px-10 py-2 rounded-md text-sm md:text-lg lg:text-xl font-medium hover:bg-white/80 transition-colors" to="/recruitments">개인프로젝트</Link>
+                            <Link className="nav-link px-4 md:px-10 py-2 rounded-md text-xs md:text-base lg:text-lg font-medium hover:bg-white/80 transition-colors" to="/project-posts">개인프로젝트</Link>
                         </li>
                         <li>
-                            <Link className="nav-link px-4 md:px-10 py-2 rounded-md text-sm md:text-lg lg:text-xl font-medium hover:bg-white/80 transition-colors" to="/recruitments/new">팀프로젝트</Link>
+                            <Link className="nav-link px-4 md:px-10 py-2 rounded-md text-xs md:text-base lg:text-lg font-medium hover:bg-white/80 transition-colors" to="/project-posts/new">팀프로젝트</Link>
                         </li>
                         <li 
                             className="relative" 
@@ -44,14 +44,17 @@ function Navigation() {
                             onMouseLeave={closeDropdown}
                         >
                             <button 
-                                className="nav-link px-4 md:px-10 py-2 rounded-md text-sm md:text-lg lg:text-xl font-medium hover:bg-white/80 transition-colors"
+                                className="nav-link px-4 md:px-10 py-2 rounded-md text-xs md:text-base lg:text-lg font-medium hover:bg-white/80 transition-colors"
                             >
                                 매칭
                             </button>
                             <DropdownMenu isOpen={isDropdownOpen} onClose={closeDropdown} />
                         </li>
                         <li>
-                            <Link className="nav-link px-4 md:px-10 py-2 rounded-md text-sm md:text-lg lg:text-xl font-medium hover:bg-white/80 transition-colors" to="/mypage">마이페이지</Link>
+                            <Link className="nav-link px-4 md:px-10 py-2 rounded-md text-xs md:text-base lg:text-lg font-medium hover:bg-white/80 transition-colors" to="/mypage">마이페이지</Link>
+                        </li>
+                        <li>
+                            <Link className="nav-link px-4 md:px-10 py-2 rounded-md text-xs md:text-base lg:text-lg font-medium hover:bg-white/80 transition-colors" to="/auth-users">Auth 사용자</Link>
                         </li>
                         {user ? (
                             <li className="flex items-center space-x-2">
