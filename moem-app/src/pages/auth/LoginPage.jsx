@@ -17,24 +17,33 @@ const LoginPage = () => {
   }
 };
  const handleLogin = async (e) => {
-  e.preventDefault();
+e.preventDefault();
 
-  const response = await fetch('http://localhost:8080/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password })
-  });
-
-  if (response.ok) {
-    const result = await response.json();
-    if (result.success) {
-      navigate('/'); // 로그인 성공 시 홈으로 이동
-    } else {
-      alert('아이디 또는 비밀번호가 잘못되었습니다.');
+    if (!username.trim() || !password.trim() ) {
+      alert('모든 필드를 입력해주세요.');
+      return;
     }
-  } else {
-    alert('서버 연결에 실패했습니다.');
-  }
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (response.ok){
+
+        await response.text();
+       
+        navigate("/main");
+      }else {
+
+        alert('아이디나 비밀번호가 잘못되었습니다');
+        }
+      }catch (error) {
+      console.error('회원가입 중 오류:', error);
+      alert('서버와 통신 중 오류가 발생했습니다.');
+    }
 };
 
   return (
@@ -64,9 +73,9 @@ const LoginPage = () => {
           required
         />
       </div>
-      <Link to ="/main">
+      
       <button type="submit" className='login-btn'>로그인</button>
-      </Link>
+      
       <nav>
       <Link to="/signup">회원가입 </Link>
       <span>|</span>
