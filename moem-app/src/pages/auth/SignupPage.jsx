@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import logo from '../../assets/logo.png'
 import { Link, useNavigate } from 'react-router-dom';
+import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { AuthAPI } from '../../services/api/index';
 
 export const SignupPage = () => {
   const navigate= useNavigate();
@@ -13,9 +16,18 @@ export const SignupPage = () => {
   });
   const { username, nickname, password, email } = formData;
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
+  const handleChange = (event) => {
+    const { name, value } = event.target;
     setFormData({ ...formData, [name]: value });
+    
+    // 아이디가 변경되면 중복 확인 상태 초기화
+    if (name === 'username') {
+      setUsernameCheck({
+        checking: false,
+        available: null,
+        message: ''
+      });
+    }
   };
 
  const handleSignup = async (e) => {

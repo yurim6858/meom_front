@@ -6,15 +6,13 @@ import Navigation from './Navigation';
 
 function Layout({ children }) {
     return (
-        // flex flex-col: flex column layout
-        // min-h-screen: viewport height 100%
         <div className="flex flex-col min-h-screen bg-gray-50">
             <Navigation />
             
             <main className="flex-grow overflow-y-auto">
                 <div className="container mx-auto px-4 py-8">
                       <Outlet /> 
-                 </div>
+                </div>
                 {/* <div className="container mx-auto px-4 py-8">
                     {children}
                 </div> */}

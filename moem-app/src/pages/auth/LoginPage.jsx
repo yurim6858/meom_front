@@ -2,11 +2,15 @@ import logo from '../../assets/logo.png'
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
 
 const LoginPage = () => {
   const[username, setUsername]= useState('');
   const[password, setPassword]=useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const { showSuccess, showError } = useToast();
 
   const handleInputChange = (e) => {
   const { name, value } = e.target;
@@ -46,6 +50,15 @@ e.preventDefault();
     }
 };
 
+    try {
+      await login({ username, password }); // AuthContext의 login 사용
+      navigate('/main');
+      showSuccess('로그인되었습니다!');
+    } catch (error) {
+      showError(error.message);
+    }
+  };
+  
   return (
     <div>
         <img src={logo} className="login-logo"/>
@@ -89,4 +102,4 @@ e.preventDefault();
   )
 }
 
-export default LoginPage
+export default LoginPage;
