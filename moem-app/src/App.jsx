@@ -18,15 +18,11 @@ import MyPage from "./pages/MyPage";
 import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import AuthUserListPage from "./pages/AuthUserListPage";
-import { AuthProvider } from './contexts/AuthContext';
-import { ToastProvider } from './contexts/ToastContext';
 
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <Routes>
+      <Routes>
         <Route path="/" element={<LandingPage/>} />
         <Route path="/login" element={<LoginPage />} />
         <Route path='/signup' element={<SignupPage/>} />
@@ -46,9 +42,7 @@ function App() {
           <Route path='/review' element={<ReviewPage/>} />
           <Route path='/mypage' element={<MyPage/>} />
         </Route>
-        </Routes> 
-      </ToastProvider>
-    </AuthProvider>
+        </Routes>
   )
 }
 

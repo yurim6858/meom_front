@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { UserAPI } from "../../services/api/index";
 
 export default function UserDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = sessionStorage.getItem('username');
+    return username ? { username } : null;
+  };
   const userAPI = new UserAPI();
   
   const [user, setUser] = useState(null);
@@ -237,7 +238,7 @@ export default function UserDetailPage() {
                   
                   <button
                     className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                    onClick={() => showError("프로젝트 제안 기능은 추후 연결됩니다.")}
+                    onClick={() => alert("프로젝트 제안 기능은 추후 연결됩니다.")}
                   >
                     프로젝트 제안하기
                   </button>
@@ -253,7 +254,7 @@ export default function UserDetailPage() {
                       </button>
                       <button
                         className="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
-                        onClick={() => showError('삭제 기능은 추후 구현됩니다.')}
+                        onClick={() => alert('삭제 기능은 추후 구현됩니다.')}
                       >
                         삭제
                       </button>

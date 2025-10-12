@@ -2,15 +2,11 @@ import logo from '../../assets/logo.png'
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useToast } from '../../contexts/ToastContext';
 
 const LoginPage = () => {
   const[username, setUsername]= useState('');
   const[password, setPassword]=useState('');
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const { showSuccess, showError } = useToast();
 
   const handleInputChange = (e) => {
   const { name, value } = e.target;
@@ -20,10 +16,10 @@ const LoginPage = () => {
      setPassword(value);
   }
 };
- const handleLogin = async (e) => {
-e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-    if (!username.trim() || !password.trim() ) {
+    if (!username.trim() || !password.trim()) {
       alert('모든 필드를 입력해주세요.');
       return;
     }

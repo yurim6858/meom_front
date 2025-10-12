@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
-import { useToast } from '../contexts/ToastContext';
 
 const AuthUserListPage = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { showError } = useToast();
 
   useEffect(() => {
     fetchUsers();
@@ -30,7 +28,7 @@ const AuthUserListPage = () => {
     } catch (err) {
       console.error('사용자 목록 불러오기 실패:', err);
       setError(err.message || '사용자 목록을 불러오는데 실패했습니다.');
-      showError('사용자 목록을 불러오는데 실패했습니다.');
+      alert('사용자 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
