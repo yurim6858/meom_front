@@ -1,14 +1,15 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchInput from "../../components/shared/SearchInput";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { UserAPI } from "../../services/api/index";
 
 const UserListPage = () => {
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = sessionStorage.getItem('username');
+    return username ? { username } : null;
+  };
   const userAPI = new UserAPI();
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState([]);
@@ -22,12 +23,12 @@ const UserListPage = () => {
         setUsers(savedUsers);
       } catch (error) {
         console.error('사용자 목록 로드 실패:', error);
-        showError('사용자를 불러오는데 실패했습니다.');
+        alert('사용자를 불러오는데 실패했습니다.');
       }
     };
     
     loadUsers();
-  }, [showError]);
+  }, []);
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();

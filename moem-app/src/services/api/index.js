@@ -1,13 +1,11 @@
 // 모든 API 서비스를 통합하여 export
 import ProjectAPI from './ProjectAPI';
 import UserAPI from './UserAPI';
-import AuthAPI from './AuthAPI';
 import ApplicationAPI from './ApplicationAPI';
 
 // 인스턴스 생성
 const projectAPI = new ProjectAPI();
 const userAPI = new UserAPI();
-const authAPI = new AuthAPI();
 const applicationAPI = new ApplicationAPI();
 
 // 통합된 API 서비스 객체
@@ -31,16 +29,6 @@ const apiService = {
   },
   
   
-  // 인증 관련
-  auth: {
-    login: (credentials) => authAPI.login(credentials),
-    register: (userData) => authAPI.register(userData),
-    verifyToken: (token) => authAPI.verifyToken(token),
-    logout: () => authAPI.logout(),
-    changePassword: (current, newPassword) => authAPI.changePassword(current, newPassword),
-    findCredentials: (email) => authAPI.findCredentials(email),
-  },
-  
   // 지원 관련
   applications: {
     getByProject: (projectId) => applicationAPI.getApplicationsByProject(projectId),
@@ -54,7 +42,7 @@ const apiService = {
 };
 
 // 개별 API 인스턴스도 export (필요한 경우)
-export { ProjectAPI, UserAPI, AuthAPI, ApplicationAPI };
+export { ProjectAPI, UserAPI, ApplicationAPI };
 
 // 기본 export는 통합된 서비스
 export default apiService;

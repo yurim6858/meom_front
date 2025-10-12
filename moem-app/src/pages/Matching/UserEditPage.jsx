@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { UserAPI } from "../../services/api/index";
 
 const MAX_USERNAME = 20;
@@ -13,8 +11,11 @@ const SKILL_PRESET = ["React", "Vue", "Angular", "TypeScript", "JavaScript", "No
 export default function UserEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = sessionStorage.getItem('username');
+    return username ? { username } : null;
+  };
   const userAPI = new UserAPI();
 
   const [email, setEmail] = useState("");
@@ -54,7 +55,7 @@ export default function UserEditPage() {
         setContactValue(user.contactValue || "");
       } catch (error) {
         console.error('사용자 로드 실패:', error);
-        showError('사용자 정보를 불러오는데 실패했습니다.');
+        alert('사용자 정보를 불러오는데 실패했습니다.');
         navigate('/users');
       } finally {
         setLoading(false);
@@ -64,7 +65,7 @@ export default function UserEditPage() {
     if (id) {
       loadUser();
     }
-  }, [id, navigate, showError]);
+  }, [id, navigate]);
 
   const skills = Array.from(
     new Set(
@@ -117,11 +118,11 @@ export default function UserEditPage() {
       // API 서비스를 통해 사용자 데이터 수정
       await userAPI.updateUser(id, userData);
 
-      showSuccess("프로필 수정이 완료되었습니다!");
+      alert("프로필 수정이 완료되었습니다!");
       navigate(`/users/${id}`);
     } catch (unknownError) {
       console.error(unknownError);
-      showError("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      alert("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ApplicationAPI } from '../../services/api/index';
-import { useToast } from '../../contexts/ToastContext';
 
 const ApplicationList = ({ projectId, isOwner }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { showSuccess, showError } = useToast();
   const applicationAPI = new ApplicationAPI();
 
   useEffect(() => {
@@ -18,7 +16,7 @@ const ApplicationList = ({ projectId, isOwner }) => {
       const data = await applicationAPI.getApplicationsByProject(projectId);
       setApplications(data);
     } catch (error) {
-      showError('지원자 목록을 불러오는데 실패했습니다.');
+      alert('지원자 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -27,10 +25,10 @@ const ApplicationList = ({ projectId, isOwner }) => {
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
       await applicationAPI.updateApplicationStatus(applicationId, newStatus);
-      showSuccess('지원 상태가 변경되었습니다.');
+      alert('지원 상태가 변경되었습니다.');
       loadApplications();
     } catch (error) {
-      showError('지원 상태 변경에 실패했습니다.');
+      alert('지원 상태 변경에 실패했습니다.');
     }
   };
 

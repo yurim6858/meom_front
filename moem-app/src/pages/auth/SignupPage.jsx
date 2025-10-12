@@ -1,9 +1,6 @@
 import React, { useState } from 'react'
 import logo from '../../assets/logo.png'
 import { Link, useNavigate } from 'react-router-dom';
-import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { AuthAPI } from '../../services/api/index';
 
 export const SignupPage = () => {
   const navigate= useNavigate();
@@ -30,7 +27,7 @@ export const SignupPage = () => {
     }
   };
 
- const handleSignup = async (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
     if (!username.trim() || !nickname.trim() || !password.trim() || !email.trim()) {

@@ -1,19 +1,20 @@
 import React, { useState } from 'react';
 import { ApplicationAPI } from '../../services/api/index';
-import { useToast } from '../../contexts/ToastContext';
-import { useAuth } from '../../contexts/AuthContext';
 
 const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle }) => {
   const [message, setMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { showSuccess, showError } = useToast();
-  const { user: currentUser } = useAuth();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = sessionStorage.getItem('username');
+    return username ? { username } : null;
+  };
   const applicationAPI = new ApplicationAPI();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!message.trim()) {
-      showError('지원 메시지를 입력해주세요.');
+      alert('지원 메시지를 입력해주세요.');
       return;
     }
 
@@ -24,11 +25,11 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle }) => {
         message: message.trim()
       }, currentUser?.username);
       
-      showSuccess('지원이 완료되었습니다!');
+      alert('지원이 완료되었습니다!');
       onClose();
       setMessage('');
     } catch (error) {
-      showError(error.message);
+      alert(error.message);
     } finally {
       setIsSubmitting(false);
     }

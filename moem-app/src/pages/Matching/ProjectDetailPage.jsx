@@ -3,15 +3,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ApplicationModal from "../../components/shared/ApplicationModal";
 import ApplicationList from "../../components/shared/ApplicationList";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { ProjectAPI, ApplicationAPI } from "../../services/api/index";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = sessionStorage.getItem('username');
+    return username ? { username } : null;
+  };
   const projectAPI = new ProjectAPI();
   const applicationAPI = new ApplicationAPI();
   
@@ -65,11 +66,11 @@ export default function ProjectDetailPage() {
 
     try {
       await projectAPI.deleteProject(id);
-      showSuccess("공고가 삭제되었습니다.");
+      alert("공고가 삭제되었습니다.");
       navigate("/project-posts");
     } catch (error) {
      console.error("삭제 실패:", error);
-      showError("삭제 중 오류가 발생했습니다.");
+      alert("삭제 중 오류가 발생했습니다.");
     }
   };
 

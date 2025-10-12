@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { ProjectAPI } from "../../services/api/index";
 
 const MAX_TITLE = 60;
@@ -14,8 +12,11 @@ const WORK_STYLES = ["온라인", "오프라인", "하이브리드"];
 export default function ProjectEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = sessionStorage.getItem('username');
+    return username ? { username } : null;
+  };
   const projectAPI = new ProjectAPI();
 
   const [title, setTitle] = useState("");
@@ -65,7 +66,7 @@ export default function ProjectEditPage() {
         }
       } catch (error) {
         console.error('프로젝트 로드 실패:', error);
-        showError('프로젝트를 불러오는데 실패했습니다.');
+        alert('프로젝트를 불러오는데 실패했습니다.');
         navigate('/project-posts');
       } finally {
         setLoading(false);
@@ -75,7 +76,7 @@ export default function ProjectEditPage() {
     if (id) {
       loadProject();
     }
-  }, [id, navigate, showError]);
+  }, [id, navigate]);
 
   const tags = Array.from(
     new Set(
@@ -177,11 +178,11 @@ export default function ProjectEditPage() {
       };
 
       await projectAPI.updateProject(id, projectData);
-      showSuccess("프로젝트가 수정되었습니다!");
+      alert("프로젝트가 수정되었습니다!");
       navigate(`/project-posts/${id}`);
     } catch (unknownError) {
       console.error(unknownError);
-      showError("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      alert("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
     }

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
 import LoadingSpinner from '../../components/shared/LoadingSpinner';
-import { useToast } from '../../contexts/ToastContext';
 import { ProjectAPI, UserAPI } from '../../services/api/index';
 
 function ManagementPage() {
-    const { user: currentUser } = useAuth();
-    const { showError } = useToast();
+    // 세션 스토리지에서 사용자 정보 가져오기
+    const getCurrentUser = () => {
+        const username = sessionStorage.getItem('username');
+        return username ? { username } : null;
+    };
   const projectAPI = new ProjectAPI();
   const userAPI = new UserAPI();
     const [activeTab, setActiveTab] = useState('project'); // 'project' or 'user'
@@ -28,6 +29,7 @@ function ManagementPage() {
                 // 프로젝트 공고 확인
                 const allPosts = await projectAPI.getProjects();
                 
+                const currentUser = getCurrentUser();
                 const myProjectPosts = allPosts.filter(post => 
                     post.username === currentUser?.username
                 );

@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { ProjectAPI } from "../../services/api/index";
 
 const MAX_TITLE = 60;
@@ -12,8 +10,11 @@ const WORK_STYLES = ["온라인", "오프라인", "하이브리드"];
 
 export default function ProjectCreatePage() {
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = sessionStorage.getItem('username');
+    return username ? { username } : null;
+  };
   const projectAPI = new ProjectAPI();
 
   const [title, setTitle] = useState("");
@@ -31,13 +32,14 @@ export default function ProjectCreatePage() {
 
   // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
   useEffect(() => {
+    const currentUser = getCurrentUser();
     if (!currentUser) {
       navigate('/login');
     } else {
       // 로그인한 사용자 정보로 자동 채우기
-      setContactValue(currentUser.email);
+      setContactValue(currentUser.email || '');
     }
-  }, [currentUser, navigate]);
+  }, [navigate]);
 
   const tags = Array.from(
     new Set(
@@ -139,11 +141,11 @@ export default function ProjectCreatePage() {
       };
 
       await projectAPI.createProject(projectData);
-      showSuccess("프로젝트가 등록되었습니다!");
+      alert("프로젝트가 등록되었습니다!");
       navigate(`/project-posts`);
     } catch (unknownError) {
       console.error(unknownError);
-      showError("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      alert("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
     }
