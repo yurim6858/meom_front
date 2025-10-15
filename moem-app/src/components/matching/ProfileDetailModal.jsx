@@ -32,12 +32,19 @@ export default function ProfileDetailModal({ profile, onClose }) {
             <p><strong> 학교:</strong> {profile.university}</p>
             <p><strong> 소개:</strong> {profile.note}</p>
           </div>
+          {profile.recommendationReason && (
+            <div className="p-3 bg-teal-50/70 border border-teal-200 rounded-lg mt-2">
+              <h3 className="font-semibold mb-1 text-teal-800">💡 AI 추천 요약</h3>
+              <p className="text-sm text-slate-700">{profile.recommendationReason}</p>
+            </div>
+          )}
+
           <div>
             <h3 className="font-semibold mb-2">보유 기술</h3>
             <div className="flex flex-wrap gap-2">
-              {profile.skills.map((skill) => (
-                <span key={skill.id} className="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
-                  {skill.label}
+              {profile.skills?.map((skill) => (
+                <span key={skill} className="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                  {skill}
                 </span>
               ))}
             </div>

@@ -1,37 +1,58 @@
 import React, { useEffect, useState } from "react";
-import FilterBar from "@/components/matching/FilterBar";
 import ProfileCard from "@/components/matching/ProfileCard";
 import ProfileDetailModal from "../../components/matching/ProfileDetailModal";
 
 export default function AiRecommendPage() {
-  const [tab, setTab] = useState("ai");
   const [query, setQuery] = useState("");
-  const [selectedSkills, setSelectedSkills] = useState([]);
   const [savedIds, setSavedIds] = useState([]);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [profiles, setProfiles] = useState([]);
-  
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUsers = async () => {
-      setIsLoading(true); 
+      setIsLoading(true);
       try {
         const response = await fetch('/api/match/users');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        setProfiles(data); 
+        setProfiles(data);
       } catch (error) {
         console.error("Failed to fetch users:", error);
       } finally {
-        setIsLoading(false); 
+        setIsLoading(false);
       }
     };
-
     fetchUsers();
-  }, []); 
+  }, []);
+
+  const handleNaturalSearch = async () => {
+    if (!query.trim()) {
+      alert("검색어를 입력해주세요.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/match/recommend/natural', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: query }),
+      });
+      if (!response.ok) {
+        throw new Error('Natural search failed');
+      }
+      const data = await response.json();
+      setProfiles(data.recommendations); 
+    } catch (error) {
+      console.error("Failed to perform natural search:", error);
+      alert("AI 검색에 실패했습니다. 서버 상태를 확인해주세요.");
+      setProfiles([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const onToggleSave = (id) => {
     setSavedIds((prev) =>
@@ -65,7 +86,7 @@ export default function AiRecommendPage() {
 
   const loadingState = (
     <div className="text-center py-16 text-slate-500">
-      <p>사용자 목록을 불러오는 중입니다...</p>
+      <p>AI가 검색 결과를 분석 중입니다...</p>
     </div>
   );
 
@@ -89,38 +110,19 @@ export default function AiRecommendPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="이름, 역할, 학교, 지역 등으로 검색"
-              className="w-full pl-10 h-12 rounded-xl shadow-sm border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-teal-500"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleNaturalSearch();
+              }}
+              placeholder="예: 스프링 잘하는 백엔드 개발자"
+              className="w-full pl-10 h-12 rounded-xl shadow-sm border border-slate-200 bg-white focus-outline-none focus-ring-2 focus:ring-teal-500"
             />
-            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" viewBox="0 0 24 24">
+            <svg
+              onClick={handleNaturalSearch}
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 cursor-pointer"
+              viewBox="0 0 24 24"
+            >
               <path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.49 21.49 20 15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
             </svg>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="inline-flex rounded-full border border-slate-200 overflow-hidden">
-              {["all", "ai"].map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setTab(t)}
-                  className={`px-4 py-2 text-sm ${
-                    tab === t ? "bg-teal-600 text-white" : "bg-white text-slate-700"
-                  }`}
-                >
-                  {t === "all" ? "전체" : "AI 추천"}
-                </button>
-              ))}
-            </div>
-            <FilterBar
-              selected={selectedSkills}
-              onToggle={(sid) =>
-                setSelectedSkills((prev) =>
-                  prev.includes(sid)
-                    ? prev.filter((x) => x !== sid)
-                    : [...prev, sid]
-                )
-              }
-              onOpenAdvanced={() => alert("고급 필터 (역할/지역/가용성 등)")}
-            />
           </div>
         </section>
         
@@ -143,6 +145,7 @@ export default function AiRecommendPage() {
           )}
         </section>
       </main>
+      
       <ProfileDetailModal profile={selectedProfile} onClose={handleCloseModal} />
     </div>
   );
