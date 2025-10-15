@@ -1,15 +1,15 @@
 import React from 'react'
 
-export default function ProfileCard({ profile, saved, onToggleSave, onInvite }) {
-    return (
-        <article className="rounded-2xl shadow-sm border border-slate-200/60 bg-white p-5">
+export default function ProfileCard({ profile, saved, onToggleSave, onInvite, onViewDetails }) {
+  return (
+    <article className="rounded-2xl shadow-sm border border-slate-200/60 bg-white p-5">
       <header className="flex items-start justify-between gap-3">
         <div>
           <h3 className="text-xl font-semibold tracking-tight">{profile.name}</h3>
           <p className="text-slate-500 text-sm mt-0.5">{profile.role}</p>
           {profile.note && <p className="text-slate-600 text-sm mt-2 line-clamp-1">{profile.note}</p>}
         </div>
-    <button
+        <button
           className={`p-2 rounded-full border ${saved ? "border-teal-200 bg-teal-50 text-teal-600" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
           onClick={() => onToggleSave(profile.id)}
           aria-label={saved ? "저장 취소" : "저장"}
@@ -26,8 +26,8 @@ export default function ProfileCard({ profile, saved, onToggleSave, onInvite }) 
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
         {profile.skills?.map((s) => (
-          <span key={s.id} className="rounded-full px-3 py-1 text-sm border border-slate-200 text-slate-700">
-            {s.label}
+          <span key={s} className="rounded-full px-3 py-1 text-sm border border-slate-200 text-slate-700">
+            {s} 
           </span>
         ))}
       </div>
@@ -58,10 +58,16 @@ export default function ProfileCard({ profile, saved, onToggleSave, onInvite }) 
       </div>
 
       <footer className="flex items-center justify-end gap-2 mt-5">
-        <button className="rounded-full px-4 py-2 border border-slate-300 hover:bg-slate-50">
+        <button 
+          onClick={() => onViewDetails(profile)} 
+          className="rounded-full px-4 py-2 border border-slate-300 hover:bg-slate-50 text-sm font-medium"
+        >
           자세히
         </button>
-        <button className="rounded-full px-4 py-2 bg-teal-600 text-white hover:bg-teal-700" onClick={() => onInvite(profile.id)}>
+        <button 
+          className="rounded-full px-4 py-2 bg-teal-600 text-white hover:bg-teal-700 text-sm font-medium" 
+          onClick={() => onInvite(profile.id)}
+        >
           영입 제안
         </button>
       </footer>
