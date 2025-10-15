@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const Maincomponent = () => {
   return (
-    <div class='btn'>
+    <div className='btn'>
       <nav>
         <Link to ="/login">매칭</Link>
         <Link to ="/">로그아웃</Link>
