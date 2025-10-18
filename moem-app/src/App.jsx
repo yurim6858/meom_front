@@ -20,6 +20,7 @@ import { SignupPage } from "./pages/auth/SignupPage";
 import AuthUserListPage from "./pages/AuthUserListPage";
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import ApplicationPage from "./pages/ApplicationPage";
 
 
 function App() {
@@ -45,6 +46,7 @@ function App() {
           <Route path='/my-posts' element={<ManagementPage/>} />
           <Route path='/review' element={<ReviewPage/>} />
           <Route path='/mypage' element={<MyPage/>} />
+          <Route path='/application' element={<ApplicationPage/>}/>
         </Route>
         </Routes> 
       </ToastProvider>
