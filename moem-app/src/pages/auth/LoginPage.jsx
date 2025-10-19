@@ -2,11 +2,14 @@ import logo from '../../assets/logo.png'
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
+import { AuthAPI } from '../../services/api/index';
 
 const LoginPage = () => {
   const[username, setUsername]= useState('');
   const[password, setPassword]=useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const authAPI = new AuthAPI();
 
   const handleInputChange = (e) => {
   const { name, value } = e.target;
@@ -24,34 +27,35 @@ const LoginPage = () => {
       return;
     }
 
+    setIsLoading(true);
+
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-
-      if (response.ok){
-
-        await response.text();
-       
-        navigate("/main");
-      }else {
-
-        alert('아이디나 비밀번호가 잘못되었습니다');
+      const loginData = { username, password };
+      const response = await authAPI.login(loginData);
+      
+      // JWT 토큰과 사용자 정보 저장
+      authAPI.saveToken(response.accessToken, response.username);
+      
+      // 사용자 상세 정보 조회 및 저장 (토큰 저장 후)
+      try {
+        const authUsers = await authAPI.getAuthUsers();
+        const currentUser = authUsers.find(user => user.username === response.username);
+        if (currentUser) {
+          localStorage.setItem('email', currentUser.email);
+          localStorage.setItem('userId', currentUser.id.toString());
         }
-      }catch (error) {
-      console.error('회원가입 중 오류:', error);
-      alert('서버와 통신 중 오류가 발생했습니다.');
-    }
-};
-
-    try {
-      await login({ username, password }); // AuthContext의 login 사용
-      navigate('/main');
-      showSuccess('로그인되었습니다!');
+      } catch (userInfoError) {
+        console.warn('사용자 상세 정보 조회 실패:', userInfoError);
+        // 사용자 정보 조회 실패해도 로그인은 성공으로 처리
+      }
+      
+      alert('로그인 성공!');
+      navigate("/main");
     } catch (error) {
-      showError(error.message);
+      console.error('로그인 중 오류:', error);
+      alert(error.message || '로그인 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -83,7 +87,9 @@ const LoginPage = () => {
         />
       </div>
       
-      <button type="submit" className='login-btn'>로그인</button>
+      <button type="submit" className='login-btn' disabled={isLoading}>
+        {isLoading ? '로그인 중...' : '로그인'}
+      </button>
       
       <nav>
       <Link to="/signup">회원가입 </Link>

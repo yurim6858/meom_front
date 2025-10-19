@@ -1,38 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
+import { AuthAPI } from '../services/api/index';
 
 const AuthUserListPage = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const authAPI = new AuthAPI();
 
   const fetchUsers = async () => {
     try {
+      console.log('AuthUserListPage: fetchUsers 시작');
       setLoading(true);
       setError(null);
       
-      const response = await fetch('http://localhost:8080/api/auth/users');
+      console.log('AuthUserListPage: API 호출 중...');
+      const data = await authAPI.getAuthUsers();
+      console.log('AuthUserListPage: API 응답 받음:', data);
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
       setUsers(data);
+      console.log('AuthUserListPage: 상태 업데이트 완료');
     } catch (err) {
-      console.error('사용자 목록 불러오기 실패:', err);
+      console.error('AuthUserListPage: 사용자 목록 불러오기 실패:', err);
       setError(err.message || '사용자 목록을 불러오는데 실패했습니다.');
+      
       alert('사용자 목록을 불러오는데 실패했습니다.');
     } finally {
+      console.log('AuthUserListPage: finally 블록 실행 - 로딩 종료');
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []); // 빈 의존성 배열로 마운트 시에만 실행
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';
@@ -77,7 +80,7 @@ const AuthUserListPage = () => {
               >
                 ← 뒤로가기
               </button>
-              <h1 className="text-2xl font-bold text-gray-900">Auth 사용자 목록</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Auth 데이터베이스 사용자 목록 (전체)</h1>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-500">
@@ -100,7 +103,7 @@ const AuthUserListPage = () => {
           <div className="text-center py-12">
             <div className="text-gray-400 text-6xl mb-4">👥</div>
             <h2 className="text-xl font-semibold text-gray-600 mb-2">
-              등록된 사용자가 없습니다
+              Auth 데이터베이스에 등록된 사용자가 없습니다
             </h2>
             <p className="text-gray-500">
               회원가입을 통해 사용자를 등록해보세요.
@@ -116,16 +119,25 @@ const AuthUserListPage = () => {
                       ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      사용자명
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      닉네임
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       이메일
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      사용자명
+                      역할
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       가입일
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       수정일
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      상태
                     </th>
                   </tr>
                 </thead>
@@ -136,16 +148,33 @@ const AuthUserListPage = () => {
                         {user.id}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.username}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {user.nickname}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {user.email}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {user.username}
+                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                          user.userRole === 'ROLE_ADMIN' 
+                            ? 'bg-red-100 text-red-800' 
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {user.userRole === 'ROLE_ADMIN' ? '관리자' : '일반사용자'}
+                        </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatDate(user.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(user.updatedAt)}
+                        {formatDate(user.modifiedAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <span className="inline-block px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
+                          활성
+                        </span>
                       </td>
                     </tr>
                   ))}

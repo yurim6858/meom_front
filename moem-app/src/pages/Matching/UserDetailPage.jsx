@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { UserAPI } from "../../services/api/index";
@@ -8,10 +8,13 @@ export default function UserDetailPage() {
   const navigate = useNavigate();
   // 세션 스토리지에서 사용자 정보 가져오기
   const getCurrentUser = () => {
-    const username = sessionStorage.getItem('username');
-    return username ? { username } : null;
+    const username = localStorage.getItem('username');
+    const email = localStorage.getItem('email');
+    const userId = localStorage.getItem('userId');
+    return username ? { username, email, id: userId } : null;
   };
   const userAPI = new UserAPI();
+  const currentUser = useMemo(() => getCurrentUser(), []); // currentUser 메모이제이션
   
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -150,17 +153,6 @@ export default function UserDetailPage() {
               </div>
             </div>
 
-            {/* 자기소개 카드 */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-              <div className="p-8">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">자기소개</h2>
-                <div className="prose prose-gray dark:prose-invert max-w-none">
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-line">
-                    {user.intro || "등록된 자기소개가 없습니다."}
-                  </p>
-                </div>
-              </div>
-            </div>
 
             {/* 기술 스택 카드 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">

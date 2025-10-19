@@ -1,21 +1,21 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import DropdownMenu from '../shared/DropdownMenu';
+import AuthAPI from '../../services/api/AuthAPI';
 
 function Navigation() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
+    const authAPI = new AuthAPI();
     
-    // 세션 스토리지에서 사용자 정보 가져오기
+    // AuthAPI를 사용하여 사용자 정보 가져오기
     const getCurrentUser = () => {
-        const username = sessionStorage.getItem('username');
-        return username ? { username } : null;
+        return authAPI.getCurrentUser();
     };
     
     const handleLogout = () => {
-        sessionStorage.removeItem('accessToken');
-        sessionStorage.removeItem('username');
+        authAPI.removeToken();
         navigate('/');
     };
 

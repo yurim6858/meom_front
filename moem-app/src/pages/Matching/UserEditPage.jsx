@@ -5,17 +5,16 @@ import { UserAPI } from "../../services/api/index";
 
 const MAX_USERNAME = 20;
 const MAX_INTRO = 100;
-const MAX_BIO = 1000;
-const SKILL_PRESET = ["React", "Vue", "Angular", "TypeScript", "JavaScript", "Node.js", "Python", "Java", "Spring Boot", "Django", "Flask", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Docker", "Kubernetes", "AWS", "GCP", "Azure", "Git", "Figma", "Photoshop", "Illustrator"];
 
 export default function UserEditPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   // 세션 스토리지에서 사용자 정보 가져오기
   const getCurrentUser = () => {
-    const username = sessionStorage.getItem('username');
+    const username = localStorage.getItem('username');
     return username ? { username } : null;
   };
+  const currentUser = getCurrentUser();
   const userAPI = new UserAPI();
 
   const [email, setEmail] = useState("");

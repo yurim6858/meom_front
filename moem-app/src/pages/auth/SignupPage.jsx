@@ -1,9 +1,12 @@
 import React, { useState } from 'react'
 import logo from '../../assets/logo.png'
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthAPI } from '../../services/api/index';
 
 export const SignupPage = () => {
   const navigate= useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+  const authAPI = new AuthAPI();
 
   const [formData, setFormData] = useState({
     username: '',
@@ -13,18 +16,9 @@ export const SignupPage = () => {
   });
   const { username, nickname, password, email } = formData;
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    
-    // 아이디가 변경되면 중복 확인 상태 초기화
-    if (name === 'username') {
-      setUsernameCheck({
-        checking: false,
-        available: null,
-        message: ''
-      });
-    }
   };
 
   const handleSignup = async (e) => {
@@ -35,30 +29,40 @@ export const SignupPage = () => {
       return;
     }
 
+    // 백엔드 유효성 검사와 일치하도록 클라이언트에서도 검사
+    if (username.length < 4 || username.length > 20) {
+      alert('아이디는 4자 이상 20자 이하로 입력해주세요.');
+      return;
+    }
+
+    if (nickname.length < 2 || nickname.length > 15) {
+      alert('닉네임은 2자 이상 15자 이하로 입력해주세요.');
+      return;
+    }
+
+    if (password.length < 8 || password.length > 20) {
+      alert('비밀번호는 8자 이상 20자 이하로 입력해주세요.');
+      return;
+    }
+
+    setIsLoading(true);
+
     try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          username: formData.username,
-          nickname: formData.nickname, 
-          password: formData.password, 
-          email: formData.email,
-         })
-      });
-
-      if (response.ok){
-
-        await response.text();
-        alert('회원가입이 완료되었습니다!');
-        navigate("/login");
-      }else {
-
-        alert('회원가입 실패: 중복된 아이디 또는 서버 오류입니다.');
-        }
-      }catch (error) {
+      const signupData = {
+        username: formData.username,
+        nickname: formData.nickname,
+        password: formData.password,
+        email: formData.email
+      };
+      
+      const response = await authAPI.signup(signupData);
+      alert('회원가입이 완료되었습니다!');
+      navigate("/login");
+    } catch (error) {
       console.error('회원가입 중 오류:', error);
-      alert('서버와 통신 중 오류가 발생했습니다.');
+      alert(error.message || '회원가입 중 오류가 발생했습니다.');
+    } finally {
+      setIsLoading(false);
     }
   }
   
@@ -112,7 +116,9 @@ export const SignupPage = () => {
             required
           />
         </div>
-        <button type="submit" className='signup-btn'>회원가입</button>
+        <button type="submit" className='signup-btn' disabled={isLoading}>
+          {isLoading ? '회원가입 중...' : '회원가입'}
+        </button>
        
       </form>
     </div>

@@ -5,11 +5,6 @@ import { UserAPI } from "../../services/api/index";
 
 const UserListPage = () => {
   const navigate = useNavigate();
-  // 세션 스토리지에서 사용자 정보 가져오기
-  const getCurrentUser = () => {
-    const username = sessionStorage.getItem('username');
-    return username ? { username } : null;
-  };
   const userAPI = new UserAPI();
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState([]);
@@ -112,20 +107,9 @@ const UserListPage = () => {
                   ))}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-4 flex items-center justify-end">
                   <div className="text-xs text-zinc-500 opacity-0 transition group-hover:opacity-100">
                     상세보기 →
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleUserClick(user);
-                      }}
-                      className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-                    >
-                      상세보기
-                    </button>
                   </div>
                 </div>
               </li>
