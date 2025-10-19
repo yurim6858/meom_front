@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 
 
 const MBTI_TYPES = [
-    "ENFP", "INFP", "ESFP", "ENTP", "ENFJ", "INFP", "ESTP", "ENTJ",
-    "ISFP", "INTP", "ENTJ", "INFJ", "INTJ", "ISTJ", "ISTP", "ISFJ", "ESTJ"
+    "ENFP", "INFP", "ESFP", "ENTP", "ENFJ", "ESFJ", "ESTP", "ENTJ",
+    "ISFP", "INTP", "INFJ", "INTJ", "ISTJ", "ISTP", "ISFJ", "ESTJ"
 ];
 
 const STRENGTHS = [
@@ -21,7 +21,7 @@ const  ApplicationPage = () => {
     });
     const [selectedStrengths, setSelectedStrengths] = useState([]);
     const [selectedMBTI, setSelectedMBTI] = useState('');
-    const [qualificationsList, setQualificationsList] = useState(['sqlp']); // 초기값 'sqlp'
+    const [qualificationsList, setQualificationsList] = useState([]); 
     const [newQualification, setNewQualification] = useState('');
 
     // 일반 입력 필드 변경 핸들러
