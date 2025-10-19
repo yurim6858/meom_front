@@ -39,9 +39,12 @@ const  ApplicationPage = () => {
         );
     };
 
-    // MBTI 선택 핸들러
     const handleMBTISet = (mbti) => {
-        setSelectedMBTI(mbti);
+        setSelectedMBTI(prev => 
+            prev.includes(mbti)
+                ? prev.filter(s => s !== mbti)
+                : [...prev, mbti]
+        );
     };
 
     // 자격증 추가 핸들러
@@ -73,9 +76,6 @@ const  ApplicationPage = () => {
 
     return (
         <div className="mypage-container">
-            
-         
-      
             <form onSubmit={(e) => e.preventDefault()} className="mypage-form">
                 
                 
@@ -119,7 +119,7 @@ const  ApplicationPage = () => {
                 
                
                 <div className="input-group full-width">
-                    <label>나의 강점</label>
+                    <label>나의 강점(선택)</label>
                     <div className="button-group strength-group">
                         {STRENGTHS.map(strength => (
                             <button
@@ -134,7 +134,6 @@ const  ApplicationPage = () => {
                     </div>
                 </div>
 
-                
                 <div className="input-group full-width">
                     <label>나의 MBTI(선택)</label>
                     <div className="button-group mbti-group">
@@ -142,7 +141,7 @@ const  ApplicationPage = () => {
                             <button
                                 key={mbti}
                                 type="button"
-                                className={selectedMBTI === mbti ? 'tag-button selected' : 'tag-button mbti-button'}
+                                className={selectedMBTI.includes(mbti) ? 'tag-button selected' : 'tag-button mbti-button'}
                                 onClick={() => handleMBTISet(mbti)}
                             >
                                 {mbti}
