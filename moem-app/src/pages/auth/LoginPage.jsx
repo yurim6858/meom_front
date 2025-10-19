@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 
-const LoginPage = () => {
+const LoginPage =  () => {
   const[username, setUsername]= useState('');
   const[password, setPassword]=useState('');
   const navigate = useNavigate();
@@ -50,15 +50,6 @@ e.preventDefault();
     }
 };
 
-    try {
-      await login({ username, password }); // AuthContext의 login 사용
-      navigate('/main');
-      showSuccess('로그인되었습니다!');
-    } catch (error) {
-      showError(error.message);
-    }
-  };
-  
   return (
     <div>
         <img src={logo} className="login-logo"/>
@@ -101,5 +92,4 @@ e.preventDefault();
     </div>
   )
 }
-
 export default LoginPage;
