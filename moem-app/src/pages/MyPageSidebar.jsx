@@ -26,5 +26,4 @@ function MyPageSidebar({ items, activeKey, onItemClick }) {
     </nav>
   );
 }
-
-// export default MyPageSidebar;
+export default MyPageSidebar;
