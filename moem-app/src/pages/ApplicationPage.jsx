@@ -77,8 +77,7 @@ const  ApplicationPage = () => {
     return (
         <div className="mypage-container">
             <form onSubmit={(e) => e.preventDefault()} className="mypage-form">
-                
-                
+
                 <div className="input-row">
                     <div className="input-group">
                         <label htmlFor="nameNickname">이름 / 닉네임</label>
