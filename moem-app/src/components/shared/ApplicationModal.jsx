@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { ApplicationAPI } from '../../services/api/index';
 
-const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle }) => {
+const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPositions = [] }) => {
   const [message, setMessage] = useState('');
+  const [selectedPosition, setSelectedPosition] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // 세션 스토리지에서 사용자 정보 가져오기
+  // localStorage에서 사용자 정보 가져오기
   const getCurrentUser = () => {
-    const username = sessionStorage.getItem('username');
+    const username = localStorage.getItem('username');
     return username ? { username } : null;
   };
+  const currentUser = getCurrentUser();
   const applicationAPI = new ApplicationAPI();
 
   const handleSubmit = async (e) => {
@@ -18,18 +20,40 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle }) => {
       return;
     }
 
+    if (!selectedPosition) {
+      alert('지원할 포지션을 선택해주세요.');
+      return;
+    }
+
+    if (!currentUser?.username) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
+      console.log('지원 요청 데이터:', {
+        projectId: projectId,
+        message: message.trim(),
+        appliedPosition: selectedPosition,
+        username: currentUser?.username
+      });
+      
       await applicationAPI.createApplication({
         projectId: projectId,
-        message: message.trim()
+        message: message.trim(),
+        appliedPosition: selectedPosition
       }, currentUser?.username);
       
       alert('지원이 완료되었습니다!');
       onClose();
       setMessage('');
+      setSelectedPosition('');
     } catch (error) {
-      alert(error.message);
+      console.error('지원 생성 오류:', error);
+      console.error('오류 상세:', error.response?.data);
+      console.error('오류 상태:', error.response?.status);
+      alert(`지원 실패: ${error.message || '네트워크 오류가 발생했습니다.'}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -63,6 +87,25 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle }) => {
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              지원 포지션
+            </label>
+            <select
+              value={selectedPosition}
+              onChange={(e) => setSelectedPosition(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              required
+            >
+              <option value="">포지션을 선택해주세요</option>
+              {projectPositions.map((position, index) => (
+                <option key={index} value={position.role}>
+                  {position.role} ({position.headcount}명)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               지원 메시지
             </label>
             <textarea
@@ -88,7 +131,7 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle }) => {
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !message.trim()}
+              disabled={isSubmitting || !message.trim() || !selectedPosition}
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200"
             >
               {isSubmitting ? '지원 중...' : '지원하기'}

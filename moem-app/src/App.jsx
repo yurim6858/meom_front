@@ -1,6 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import './App.css'
-import Layout from './components/layouts/layout';
+import Layout from './components/layouts/Layout';
 import ProjectListPage from './pages/Matching/ProjectListPage';
 import ProjectCreatePage from './pages/Matching/ProjectCreatePage';
 import ProjectDetailPage from './pages/Matching/ProjectDetailPage';
@@ -14,6 +14,9 @@ import LandingPage from "./pages/LandingPage";
 import DashBoard from './pages/DashBoard';
 import ReviewPage from "./pages/ReviewPage";
 import MyPage from "./pages/MyPage";
+import MyInvitationsPage from "./pages/MyInvitationsPage";
+import MyTeamsPage from "./pages/MyTeamsPage";
+import TeamDetailPage from "./pages/TeamDetailPage";
 
 import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
@@ -41,8 +44,11 @@ function App() {
           <Route path='/my-posts' element={<ManagementPage/>} />
           <Route path='/review' element={<ReviewPage/>} />
           <Route path='/mypage' element={<MyPage/>} />
+          <Route path='/my-invitations' element={<MyInvitationsPage/>} />
+          <Route path='/my-teams' element={<MyTeamsPage/>} />
+          <Route path='/teams/:id' element={<TeamDetailPage/>} />
         </Route>
-        </Routes>
+      </Routes>
   )
 }
 

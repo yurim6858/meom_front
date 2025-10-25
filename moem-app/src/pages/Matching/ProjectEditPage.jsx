@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { ProjectAPI } from "../../services/api/index";
@@ -14,10 +14,13 @@ export default function ProjectEditPage() {
   const navigate = useNavigate();
   // 세션 스토리지에서 사용자 정보 가져오기
   const getCurrentUser = () => {
-    const username = sessionStorage.getItem('username');
-    return username ? { username } : null;
+    const username = localStorage.getItem('username');
+    const email = localStorage.getItem('email');
+    const userId = localStorage.getItem('userId');
+    return username ? { username, email, id: userId } : null;
   };
   const projectAPI = new ProjectAPI();
+  const currentUser = useMemo(() => getCurrentUser(), []); // currentUser 메모이제이션
 
   const [title, setTitle] = useState("");
   const [intro, setIntro] = useState("");

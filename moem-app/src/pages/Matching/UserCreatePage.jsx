@@ -4,8 +4,6 @@ import { UserAPI } from "../../services/api/index";
 
 const MAX_USERNAME = 20;
 const MAX_INTRO = 100;
-const MAX_BIO = 1000;
-const SKILL_PRESET = ["React", "Vue", "Angular", "TypeScript", "JavaScript", "Node.js", "Python", "Java", "Spring Boot", "Django", "Flask", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Docker", "Kubernetes", "AWS", "GCP", "Azure", "Git", "Figma", "Photoshop", "Illustrator"];
 
 export default function UserCreatePage() {
   const navigate = useNavigate();
@@ -13,8 +11,10 @@ export default function UserCreatePage() {
   
   // localStorage에서 사용자 정보 가져오기
   const getCurrentUser = () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
+    const username = localStorage.getItem('username');
+    const email = localStorage.getItem('email');
+    const token = localStorage.getItem('accessToken');
+    return username && token ? { username, email, token } : null;
   };
 
   const [email, setEmail] = useState("");
@@ -67,7 +67,7 @@ export default function UserCreatePage() {
     };
 
     checkExistingProfile();
-  }, [currentUser, navigate]);
+  }, [navigate]);
 
   const skills = Array.from(
     new Set(

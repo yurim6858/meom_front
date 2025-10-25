@@ -8,10 +8,7 @@ class ApplicationAPI extends BaseAPI {
   // 프로젝트별 지원 목록 조회
   async getApplicationsByProject(projectId) {
     try {
-      const response = await this.request(`/applications/project/${projectId}`, {
-        method: 'GET'
-      });
-      return response;
+      return await this.get(`/applications/project/${projectId}`);
     } catch (error) {
       console.error('프로젝트 지원 목록 조회 실패:', error);
       throw error;
@@ -21,13 +18,11 @@ class ApplicationAPI extends BaseAPI {
   // 사용자별 지원 목록 조회
   async getApplicationsByUser(userId) {
     try {
-      const response = await this.request(`/applications/user`, {
-        method: 'GET',
+      return await this.get(`/applications/user`, {
         headers: {
           'X-Username': userId
         }
       });
-      return response;
     } catch (error) {
       console.error('사용자 지원 목록 조회 실패:', error);
       throw error;
@@ -37,16 +32,22 @@ class ApplicationAPI extends BaseAPI {
   // 지원 생성
   async createApplication(applicationData, username) {
     try {
-      const response = await this.request('/applications', {
-        method: 'POST',
+      console.log('ApplicationAPI: 지원 생성 요청');
+      console.log('ApplicationAPI: 데이터:', applicationData);
+      console.log('ApplicationAPI: 사용자명:', username);
+      
+      const result = await this.post('/applications', applicationData, {
         headers: {
           'X-Username': username
-        },
-        body: JSON.stringify(applicationData)
+        }
       });
-      return response;
+      
+      console.log('ApplicationAPI: 지원 생성 성공:', result);
+      return result;
     } catch (error) {
-      console.error('지원 생성 실패:', error);
+      console.error('ApplicationAPI: 지원 생성 실패:', error);
+      console.error('ApplicationAPI: 오류 응답:', error.response?.data);
+      console.error('ApplicationAPI: 오류 상태:', error.response?.status);
       throw error;
     }
   }
@@ -54,11 +55,7 @@ class ApplicationAPI extends BaseAPI {
   // 지원 수정
   async updateApplication(applicationId, applicationData) {
     try {
-      const response = await this.request(`/applications/${applicationId}`, {
-        method: 'PUT',
-        body: JSON.stringify(applicationData)
-      });
-      return response;
+      return await this.put(`/applications/${applicationId}`, applicationData);
     } catch (error) {
       console.error('지원 수정 실패:', error);
       throw error;
@@ -68,13 +65,11 @@ class ApplicationAPI extends BaseAPI {
   // 지원 삭제
   async deleteApplication(applicationId, username) {
     try {
-      const response = await this.request(`/applications/${applicationId}`, {
-        method: 'DELETE',
+      return await this.delete(`/applications/${applicationId}`, {
         headers: {
           'X-Username': username
         }
       });
-      return response;
     } catch (error) {
       console.error('지원 삭제 실패:', error);
       throw error;
@@ -84,10 +79,7 @@ class ApplicationAPI extends BaseAPI {
   // 지원 상세 조회
   async getApplication(applicationId) {
     try {
-      const response = await this.request(`/applications/${applicationId}`, {
-        method: 'GET'
-      });
-      return response;
+      return await this.get(`/applications/${applicationId}`);
     } catch (error) {
       console.error('지원 상세 조회 실패:', error);
       throw error;
@@ -97,12 +89,23 @@ class ApplicationAPI extends BaseAPI {
   // 지원 상태 변경 (승인/거부)
   async updateApplicationStatus(applicationId, status) {
     try {
-      const response = await this.request(`/applications/${applicationId}/status?status=${status}`, {
-        method: 'PUT'
-      });
-      return response;
+      return await this.put(`/applications/${applicationId}/status?status=${status}`);
     } catch (error) {
       console.error('지원 상태 변경 실패:', error);
+      throw error;
+    }
+  }
+
+  // 지원 승인 및 팀 초대 발송
+  async approveAndSendInvitation(applicationId) {
+    try {
+      return await this.post(`/applications/${applicationId}/approve-and-invite`, {}, {
+        headers: {
+          'X-Username': localStorage.getItem('username')
+        }
+      });
+    } catch (error) {
+      console.error('지원 승인 및 초대 발송 실패:', error);
       throw error;
     }
   }
