@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
 import { AuthAPI } from '../../services/api/index';
 
-const LoginPage = () => {
+const LoginPage =  () => {
   const[username, setUsername]= useState('');
   const[password, setPassword]=useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -103,5 +103,4 @@ const LoginPage = () => {
     </div>
   )
 }
-
 export default LoginPage;
