@@ -1,14 +1,10 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import SearchInput from "../../components/shared/SearchInput";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { UserAPI } from "../../services/api/index";
 
 const UserListPage = () => {
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
   const userAPI = new UserAPI();
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState([]);
@@ -22,12 +18,12 @@ const UserListPage = () => {
         setUsers(savedUsers);
       } catch (error) {
         console.error('사용자 목록 로드 실패:', error);
-        showError('사용자를 불러오는데 실패했습니다.');
+        alert('사용자를 불러오는데 실패했습니다.');
       }
     };
     
     loadUsers();
-  }, [showError]);
+  }, []);
 
   const filtered = useMemo(() => {
     const keyword = query.trim().toLowerCase();
@@ -111,20 +107,9 @@ const UserListPage = () => {
                   ))}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between">
+                <div className="mt-4 flex items-center justify-end">
                   <div className="text-xs text-zinc-500 opacity-0 transition group-hover:opacity-100">
                     상세보기 →
-                  </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleUserClick(user);
-                      }}
-                      className="rounded-xl bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-                    >
-                      상세보기
-                    </button>
                   </div>
                 </div>
               </li>

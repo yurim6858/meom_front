@@ -3,186 +3,90 @@ import BaseAPI from './BaseAPI';
 class AuthAPI extends BaseAPI {
   constructor() {
     super();
-    this.storageFallback = BaseAPI.createStorageFallback('auth');
   }
 
   // 로그인
-  async login(credentials) {
+  async login(loginData) {
     try {
-      // 백엔드 API 직접 호출 (폴백 없이)
-      const url = `${this.baseURL}/auth/login`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: credentials.username,
-          password: credentials.password
-        })
-      });
-      
-      if (!response.ok) {
-        if (response.status === 400) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || '로그인 정보가 올바르지 않습니다.');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.message && data.message !== "로그인 성공") {
-        throw new Error(data.message);
-      }
-      
-      // 백엔드 응답을 프론트엔드 형식으로 변환
-      const user = {
-        id: data.userId,
-        email: data.email,
-        username: data.username,
-        token: data.token
-      };
-      
-      return user;
+      return await this.post('/auth/login', loginData);
     } catch (error) {
+      if (error.response?.status === 401) {
+        throw new Error('아이디나 비밀번호가 잘못되었습니다.');
+      }
       console.error('로그인 실패:', error);
       throw error;
     }
   }
 
   // 회원가입
-  async register(userData) {
+  async signup(signupData) {
     try {
-      // 백엔드 API 직접 호출 (폴백 없이)
-      const url = `${this.baseURL}/auth/register`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: userData.email,
-          username: userData.username,
-          password: userData.password
-        })
-      });
-      
-      if (!response.ok) {
-        if (response.status === 400) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || '회원가입 정보가 올바르지 않습니다.');
-        }
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.message && data.message !== "회원가입이 완료되었습니다.") {
-        throw new Error(data.message);
-      }
-      
-      // 백엔드 응답을 프론트엔드 형식으로 변환
-      const user = {
-        id: data.userId,
-        email: data.email,
-        username: data.username,
-        token: data.token
-      };
-      
-      return user;
+      return await this.post('/auth/signup', signupData);
     } catch (error) {
+      if (error.response?.status === 400) {
+        throw new Error(error.response.data || '회원가입 정보가 올바르지 않습니다.');
+      }
       console.error('회원가입 실패:', error);
       throw error;
     }
   }
 
-  // 토큰 검증 (현재는 간단한 구현)
-  async verifyToken(token) {
+  // 토큰 저장
+  saveToken(token, username) {
+    console.log('AuthAPI: 토큰 저장 중...');
+    console.log('AuthAPI: 토큰:', token ? token.substring(0, 20) + '...' : 'null');
+    console.log('AuthAPI: 사용자명:', username);
+    
+    localStorage.setItem('accessToken', token);
+    localStorage.setItem('username', username);
+    
+    console.log('AuthAPI: 토큰 저장 완료');
+    console.log('AuthAPI: 저장된 토큰 확인:', localStorage.getItem('accessToken') ? '있음' : '없음');
+  }
+
+  // 토큰 제거
+  removeToken() {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('username');
+    localStorage.removeItem('email');
+    localStorage.removeItem('userId');
+  }
+
+  // 토큰 가져오기
+  getToken() {
+    return localStorage.getItem('accessToken');
+  }
+
+  // 사용자 정보 가져오기
+  getCurrentUser() {
+    const username = localStorage.getItem('username');
+    const token = localStorage.getItem('accessToken');
+    return username && token ? { username, token } : null;
+  }
+
+  // 인증된 요청을 위한 헤더 생성
+  getAuthHeaders() {
+    const token = this.getToken();
+    return {
+      'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+  }
+
+  // 인증된 사용자 목록 조회 (auth 데이터베이스) - 확인용으로 인증 없이 접근
+  async getAuthUsers() {
     try {
-      if (!token) {
-        throw new Error('토큰이 없습니다.');
-      }
+      console.log('AuthAPI: 요청 URL:', `${this.baseURL}/auth/users`);
+      console.log('AuthAPI: 요청 시작...');
       
-      // TODO: 실제로는 백엔드에서 토큰 검증 API 호출
-      // const response = await this.get('/auth/verify', { 
-      //   headers: { Authorization: `Bearer ${token}` }
-      // });
-      // return response;
-      
-      // 임시로 토큰이 있으면 유효한 것으로 간주
-      return { valid: true, token };
+      const data = await this.get('/auth/users');
+      console.log('AuthAPI: 응답 데이터:', data);
+      return data;
     } catch (error) {
-      console.error('토큰 검증 실패:', error);
+      console.error('AuthAPI: 인증 사용자 목록 조회 실패:', error);
       throw error;
     }
   }
-
-  // 로그아웃
-  async logout() {
-    try {
-      // 백엔드 API 시도 (백엔드에서 구현되면 이 부분으로 교체)
-      // return await this.post('/auth/logout');
-      
-      // 현재: 토큰만 제거 (AuthContext에서 처리)
-      return true;
-    } catch (error) {
-      console.error('로그아웃 실패:', error);
-      throw error;
-    }
-  }
-
-  // 비밀번호 변경
-  async changePassword(currentPassword, newPassword) {
-    try {
-      // 백엔드 API 시도 (백엔드에서 구현되면 이 부분으로 교체)
-      // return await this.put('/auth/password', { currentPassword, newPassword });
-      
-      // 현재: 실제 구현 필요
-      throw new Error('비밀번호 변경 기능은 아직 구현되지 않았습니다.');
-    } catch (error) {
-      console.error('비밀번호 변경 실패:', error);
-      throw error;
-    }
-  }
-
-  // 아이디/비밀번호 찾기
-  async findCredentials(email) {
-    try {
-      // 백엔드 API 시도 (백엔드에서 구현되면 이 부분으로 교체)
-      // return await this.post('/auth/find', { email });
-      
-      // 현재: 실제 구현 필요
-      throw new Error('아이디/비밀번호 찾기 기능은 아직 구현되지 않았습니다.');
-    } catch (error) {
-      console.error('아이디/비밀번호 찾기 실패:', error);
-      throw error;
-    }
-  }
-
-  // 아이디 중복 확인
-  async checkUsername(username) {
-    try {
-      const url = `${this.baseURL}/auth/check-username/${encodeURIComponent(username)}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const exists = await response.json();
-      return exists;
-    } catch (error) {
-      console.error('아이디 중복 확인 실패:', error);
-      throw error;
-    }
-  }
-
 }
 
 export default AuthAPI;

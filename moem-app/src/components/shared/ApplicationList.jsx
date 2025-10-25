@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ApplicationAPI } from '../../services/api/index';
-import { useToast } from '../../contexts/ToastContext';
+import apiService from '../../services/api/index';
 
 const ApplicationList = ({ projectId, isOwner }) => {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { showSuccess, showError } = useToast();
   const applicationAPI = new ApplicationAPI();
 
   useEffect(() => {
@@ -18,7 +17,7 @@ const ApplicationList = ({ projectId, isOwner }) => {
       const data = await applicationAPI.getApplicationsByProject(projectId);
       setApplications(data);
     } catch (error) {
-      showError('지원자 목록을 불러오는데 실패했습니다.');
+      alert('지원자 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -27,10 +26,20 @@ const ApplicationList = ({ projectId, isOwner }) => {
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
       await applicationAPI.updateApplicationStatus(applicationId, newStatus);
-      showSuccess('지원 상태가 변경되었습니다.');
+      alert('지원 상태가 변경되었습니다.');
       loadApplications();
     } catch (error) {
-      showError('지원 상태 변경에 실패했습니다.');
+      alert('지원 상태 변경에 실패했습니다.');
+    }
+  };
+
+  const handleApproveAndInvite = async (applicationId) => {
+    try {
+      await apiService.applications.approveAndInvite(applicationId);
+      alert('지원이 승인되어 팀 초대가 발송되었습니다.');
+      loadApplications();
+    } catch (error) {
+      alert('승인 및 초대 발송에 실패했습니다.');
     }
   };
 
@@ -124,10 +133,10 @@ const ApplicationList = ({ projectId, isOwner }) => {
           {isOwner && application.status === 'PENDING' && (
             <div className="flex space-x-2">
               <button
-                onClick={() => handleStatusChange(application.id, 'APPROVED')}
+                onClick={() => handleApproveAndInvite(application.id)}
                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
               >
-                승인
+                승인 & 초대
               </button>
               <button
                 onClick={() => handleStatusChange(application.id, 'REJECTED')}

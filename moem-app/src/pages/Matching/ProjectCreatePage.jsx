@@ -1,7 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { ProjectAPI } from "../../services/api/index";
 
 const MAX_TITLE = 60;
@@ -12,9 +10,27 @@ const WORK_STYLES = ["온라인", "오프라인", "하이브리드"];
 
 export default function ProjectCreatePage() {
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
+  // 세션 스토리지에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = localStorage.getItem('username');
+    const email = localStorage.getItem('email');
+    const userId = localStorage.getItem('userId');
+    console.log('로컬 스토리지에서 가져온 사용자 정보:');
+    console.log('- username:', username);
+    console.log('- email:', email);
+    console.log('- userId:', userId, '타입:', typeof userId);
+    
+    // userId가 없거나 유효하지 않은 경우 처리
+    if (!username) return null;
+    
+    return { 
+      username, 
+      email, 
+      id: userId && !isNaN(parseInt(userId)) ? parseInt(userId) : null 
+    };
+  };
   const projectAPI = new ProjectAPI();
+  const currentUser = useMemo(() => getCurrentUser(), []); // currentUser 메모이제이션
 
   const [title, setTitle] = useState("");
   const [intro, setIntro] = useState("");
@@ -35,7 +51,7 @@ export default function ProjectCreatePage() {
       navigate('/login');
     } else {
       // 로그인한 사용자 정보로 자동 채우기
-      setContactValue(currentUser.email);
+      setContactValue(currentUser.email || '');
     }
   }, [currentUser, navigate]);
 
@@ -123,13 +139,23 @@ export default function ProjectCreatePage() {
     try {
       setIsSubmitting(true);
       
+      // creatorId 유효성 검사
+      console.log('현재 사용자 정보:', currentUser);
+      console.log('creatorId:', currentUser.id, '타입:', typeof currentUser.id);
+      
+      if (!currentUser || !currentUser.id || isNaN(parseInt(currentUser.id))) {
+        alert("사용자 정보가 올바르지 않습니다. 다시 로그인해주세요.");
+        navigate('/login');
+        return;
+      }
+
       const projectData = {
         title,
         intro,
         description,
         tags,
         deadline,
-        creatorId: currentUser.id, // 백엔드에서 요구하는 creatorId 추가
+        creatorId: parseInt(currentUser.id), // 백엔드에서 요구하는 creatorId 추가 (숫자로 변환)
         username: currentUser.username,
         positions: positions.filter(p => p.role.trim() !== ""),
         workStyle,
@@ -139,11 +165,22 @@ export default function ProjectCreatePage() {
       };
 
       await projectAPI.createProject(projectData);
-      showSuccess("프로젝트가 등록되었습니다!");
+      alert("프로젝트가 등록되었습니다!");
       navigate(`/project-posts`);
     } catch (unknownError) {
-      console.error(unknownError);
-      showError("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      console.error('프로젝트 생성 에러:', unknownError);
+      
+      // 에러 타입에 따른 구체적인 메시지 표시
+      if (unknownError.response?.status === 500) {
+        alert("서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      } else if (unknownError.response?.status === 400) {
+        alert("입력 정보를 다시 확인해 주세요.");
+      } else if (unknownError.response?.status === 401) {
+        alert("로그인이 필요합니다. 다시 로그인해 주세요.");
+        navigate('/login');
+      } else {
+        alert("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      }
     } finally {
       setIsSubmitting(false);
     }

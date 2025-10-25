@@ -4,7 +4,6 @@ import DdayBadge from "../../components/shared/DdayBadge";
 import InitialBadge from "../../components/shared/InitialBadge";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import SearchInput from "../../components/shared/SearchInput";
-import { useToast } from "../../contexts/ToastContext";
 import { ProjectAPI } from "../../services/api/index";
 
 const ProjectListPage = () => {
@@ -14,7 +13,6 @@ const ProjectListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { showSuccess, showError } = useToast();
   const projectAPI = new ProjectAPI();
 
   useEffect(() => {

@@ -28,6 +28,16 @@ const DropdownMenu = ({ isOpen, onClose }) => {
       path: '/my-posts',
       icon: '📋'
     },
+    {
+      title: '내 초대',
+      path: '/my-invitations',
+      icon: '📬'
+    },
+    {
+      title: '내 팀',
+      path: '/my-teams',
+      icon: '👥'
+    },
   ];
 
   if (!isOpen) return null;
@@ -36,13 +46,12 @@ const DropdownMenu = ({ isOpen, onClose }) => {
     <div 
       className="dropdown-menu absolute top-full right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
       style={{ marginTop: '0px' }} // 간격 제거
-      onMouseEnter={() => {}} // 메뉴 영역에 마우스가 있을 때는 닫히지 않도록
-      onMouseLeave={onClose} // 메뉴에서 마우스가 벗어나면 닫기
+    
     >
       <div className="py-2">
-        {menuItems.map((item, index) => (
+        {menuItems.map((item) => (
           <Link
-            key={index}
+            key={item.path}
             to={item.path}
             className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors duration-200"
           >

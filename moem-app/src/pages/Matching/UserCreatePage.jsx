@@ -1,19 +1,21 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
 import { UserAPI } from "../../services/api/index";
 
 const MAX_USERNAME = 20;
 const MAX_INTRO = 100;
-const MAX_BIO = 1000;
-const SKILL_PRESET = ["React", "Vue", "Angular", "TypeScript", "JavaScript", "Node.js", "Python", "Java", "Spring Boot", "Django", "Flask", "MySQL", "PostgreSQL", "MongoDB", "Redis", "Docker", "Kubernetes", "AWS", "GCP", "Azure", "Git", "Figma", "Photoshop", "Illustrator"];
 
 export default function UserCreatePage() {
   const navigate = useNavigate();
-  const { user: currentUser } = useAuth();
-  const { showSuccess, showError } = useToast();
   const userAPI = new UserAPI();
+  
+  // localStorage에서 사용자 정보 가져오기
+  const getCurrentUser = () => {
+    const username = localStorage.getItem('username');
+    const email = localStorage.getItem('email');
+    const token = localStorage.getItem('accessToken');
+    return username && token ? { username, email, token } : null;
+  };
 
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -30,6 +32,7 @@ export default function UserCreatePage() {
   // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
   useEffect(() => {
     const checkExistingProfile = async () => {
+      const currentUser = getCurrentUser();
       if (!currentUser) {
         navigate('/login');
         return;
@@ -41,7 +44,7 @@ export default function UserCreatePage() {
         const existingProfile = savedUsers.find(user => user.username === currentUser.username);
         
         if (existingProfile) {
-          showError('이미 등록된 프로필이 있습니다. 수정하려면 프로필 상세 페이지에서 수정 버튼을 클릭하세요.');
+          alert('이미 등록된 프로필이 있습니다. 수정하려면 프로필 상세 페이지에서 수정 버튼을 클릭하세요.');
           navigate('/users');
           return;
         }
@@ -64,7 +67,7 @@ export default function UserCreatePage() {
     };
 
     checkExistingProfile();
-  }, [currentUser, navigate, showError]);
+  }, [navigate]);
 
   const skills = Array.from(
     new Set(
@@ -117,11 +120,11 @@ export default function UserCreatePage() {
       // API 서비스를 통해 사용자 데이터 생성
       await userAPI.createUser(userData);
 
-      showSuccess("프로필 등록이 완료되었습니다!");
+      alert("프로필 등록이 완료되었습니다!");
       navigate("/users");
     } catch (unknownError) {
       console.error(unknownError);
-      showError("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
+      alert("알 수 없는 오류가 발생했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setIsSubmitting(false);
     }
