@@ -21,6 +21,7 @@ import TeamDetailPage from "./pages/TeamDetailPage";
 import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import AuthUserListPage from "./pages/AuthUserListPage";
+import PortfolioPage from "./pages/PortfolioPage";
 
 
 function App() {
@@ -47,6 +48,7 @@ function App() {
           <Route path='/my-invitations' element={<MyInvitationsPage/>} />
           <Route path='/my-teams' element={<MyTeamsPage/>} />
           <Route path='/teams/:id' element={<TeamDetailPage/>} />
+          <Route path='/portfolio' element={<PortfolioPage/>}/>
         </Route>
       </Routes>
   )

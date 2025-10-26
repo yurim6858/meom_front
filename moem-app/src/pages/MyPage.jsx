@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-// ⚠️ 주의: 이 코드가 작동하려면 'react-router-dom'이 설치되어 있어야 합니다.
+
 import { useNavigate } from 'react-router-dom'; 
 import MyPageSidebar from './MyPageSidebar'; 
 import ApplicationPage from './ApplicationPage';
+import PortfolioPage from './PortfolioPage';
 
 // 메뉴 데이터 정의
 const MENU_ITEMS = [
-  { key: 'spec', label: '스펙 정리하기', content: <div></div> },
+  { key: 'spec', label: '스펙 정리하기', content: <PortfolioPage/> },
   { key: 'resume', label: '자기소개서 작성', content:<ApplicationPage/> },
   { key: 'comments', label: '내가 쓴 댓글', content: <div></div> },
-   { key: 'situation', label: '지원상황', content: <div></div> },
+  { key: 'situation', label: '지원상황', content: <div></div> },
   { key: 'support', label: '고객문의', content: <div></div> },
   { key: 'logout', label: '로그아웃', content: null },
 ];
