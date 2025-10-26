@@ -6,37 +6,37 @@ const DropdownMenu = ({ isOpen, onClose }) => {
     {
       title: '프로젝트 탐색',
       path: '/project-posts',
-      icon: '🔍'
+      
     },
     {
       title: '프로젝트 등록',
       path: '/project-posts/new',
-      icon: '➕'
+     
     },
     {
       title: '유저 탐색',
       path: '/users',
-      icon: '👥'
+      
     },
     {
       title: '유저 등록',
       path: '/users/register',
-      icon: '👤'
+    
     },
     {
       title: '내 공고 관리',
       path: '/my-posts',
-      icon: '📋'
+      
     },
     {
       title: '내 초대',
       path: '/my-invitations',
-      icon: '📬'
+    
     },
     {
       title: '내 팀',
       path: '/my-teams',
-      icon: '👥'
+      
     },
   ];
 
