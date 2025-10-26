@@ -32,7 +32,7 @@ const [score, setScore] = useState(82);
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-6 space-y-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-6 space-y-8">
       {/*게이지바 (점수 포함) */}
       <div className="w-full max-w-3xl relative">
         {/* 점수 텍스트 - 게이지바 위에 표시 */}

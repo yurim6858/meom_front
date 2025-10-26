@@ -29,7 +29,7 @@ const SupportPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-8">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center p-8">
       {/* 폼 카드 */}
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-md p-6 mb-8">
         <h1 className="text-2xl font-bold mb-4 text-gray-800">
