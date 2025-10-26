@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import MyPageSidebar from './MyPageSidebar'; 
 import ApplicationPage from './ApplicationPage';
 import PortfolioPage from './PortfolioPage';
+import SupportPage from './SupportPage';
 
 // 메뉴 데이터 정의
 const MENU_ITEMS = [
@@ -11,7 +12,7 @@ const MENU_ITEMS = [
   { key: 'resume', label: '자기소개서 작성', content:<ApplicationPage/> },
   { key: 'comments', label: '내가 쓴 댓글', content: <div></div> },
   { key: 'situation', label: '지원상황', content: <div></div> },
-  { key: 'support', label: '고객문의', content: <div></div> },
+  { key: 'support', label: '고객문의', content: <SupportPage/> },
   { key: 'logout', label: '로그아웃', content: null },
 ];
 

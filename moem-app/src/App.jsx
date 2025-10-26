@@ -22,6 +22,7 @@ import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import AuthUserListPage from "./pages/AuthUserListPage";
 import PortfolioPage from "./pages/PortfolioPage";
+import SupportPage from "./pages/SupportPage";
 
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
           <Route path='/my-teams' element={<MyTeamsPage/>} />
           <Route path='/teams/:id' element={<TeamDetailPage/>} />
           <Route path='/portfolio' element={<PortfolioPage/>}/>
+          <Route path='/support' element={<SupportPage/>}/>
         </Route>
       </Routes>
   )
