@@ -76,7 +76,7 @@ const SupportPage = () => {
 
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg shadow"
+            className="w-full bg-[#9966CC] hover:bg-[#8755B3] text-white font-semibold py-2 rounded-lg shadow"
           >
             문의 제출
           </button>

@@ -13,8 +13,8 @@ function MyPageSidebar({ items, activeKey, onItemClick }) {
               className={`
                 w-full text-left p-2.5 rounded-lg text-base transition-colors duration-200
                 ${activeKey === item.key 
-                   ? 'bg-blue-500 text-white font-semibold' // 활성화된 메뉴 스타일
-                   : 'text-gray-600 hover:text-blue-500 hover:bg-blue-50' // 기본 및 호버 스타일
+                   ? 'bg-[#A855F7] text-white font-semibold' // 활성화된 메뉴 스타일
+                   : 'text-gray-600 hover:text-[#A855F7] hover:bg-blue-50' // 기본 및 호버 스타일
                 }
               `}
             >

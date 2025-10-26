@@ -375,12 +375,12 @@ label {
 }
 
 .temp-save {
-    background-color: #bdbdbd; /* 임시 저장 버튼 색상 */
+    background-color: #C8A2C8; /* 임시 저장 버튼 색상 */
     color: white;
 }
 
 .save {
-    background-color: #909090; /* 저장 버튼 색상 */
+    background-color: #9B7FD8; /* 저장 버튼 색상 */
     color: white;
 }
 
