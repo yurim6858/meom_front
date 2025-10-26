@@ -26,7 +26,7 @@ function MyPage() {
   const handleItemClick = (key) => {
     if (key === 'logout') {
       alert("로그아웃되었습니다."); 
-      navigate('//'); 
+      navigate('/'); 
     } else {
       setActiveKey(key);
     }
