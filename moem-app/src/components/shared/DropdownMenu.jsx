@@ -24,11 +24,6 @@ const DropdownMenu = ({ isOpen, onClose }) => {
     
     },
     {
-      title: '내 공고 관리',
-      path: '/my-posts',
-      
-    },
-    {
       title: '내 초대',
       path: '/my-invitations',
     
