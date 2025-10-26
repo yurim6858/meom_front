@@ -37,7 +37,7 @@ const [score, setScore] = useState(82);
       <div className="w-full max-w-3xl relative">
         {/* 점수 텍스트 - 게이지바 위에 표시 */}
         <span className="absolute left-3 -top-6 text-sm font-semibold text-gray-700">
-          현재 점수: {score} / 100
+          현재 능력: {score} 
         </span>
 
         {/* 게이지바 자체 */}
