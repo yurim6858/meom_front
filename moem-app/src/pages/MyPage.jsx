@@ -10,7 +10,7 @@ import SupportPage from './SupportPage';
 const MENU_ITEMS = [
   { key: 'spec', label: '스펙 정리하기', content: <PortfolioPage/> },
   { key: 'resume', label: '자기소개서 작성', content:<ApplicationPage/> },
-  { key: 'comments', label: '내가 쓴 댓글', content: <div></div> },
+  { key: 'comments', label: '내 공고관리', content: <div></div> },
   { key: 'situation', label: '지원상황', content: <div></div> },
   { key: 'support', label: '고객문의', content: <SupportPage/> },
   { key: 'logout', label: '로그아웃', content: null },
