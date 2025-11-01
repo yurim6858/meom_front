@@ -4,6 +4,11 @@ import { Link } from 'react-router-dom';
 const DropdownMenu = ({ isOpen, onClose }) => {
   const menuItems = [
     {
+      title: 'AI 추천',
+      path: '/matching/ai-recommend',
+      icon: '🤖'
+    },
+    {
       title: '프로젝트 탐색',
       path: '/project-posts',
       icon: '🔍'
