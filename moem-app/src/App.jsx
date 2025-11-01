@@ -17,11 +17,11 @@ import MyPage from "./pages/MyPage";
 import MyInvitationsPage from "./pages/MyInvitationsPage";
 import MyTeamsPage from "./pages/MyTeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
+import AiRecommendPage from './pages/matching/AiRecommendPage';
 
 import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import AuthUserListPage from "./pages/AuthUserListPage";
-
 
 function App() {
   return (
@@ -47,6 +47,7 @@ function App() {
           <Route path='/my-invitations' element={<MyInvitationsPage/>} />
           <Route path='/my-teams' element={<MyTeamsPage/>} />
           <Route path='/teams/:id' element={<TeamDetailPage/>} />
+          <Route path="/matching/ai-recommend" element={<AiRecommendPage />} />
         </Route>
       </Routes>
   )
