@@ -36,11 +36,13 @@ class ApplicationAPI extends BaseAPI {
       console.log('ApplicationAPI: 데이터:', applicationData);
       console.log('ApplicationAPI: 사용자명:', username);
       
-      const result = await this.post('/applications', applicationData, {
-        headers: {
-          'X-Username': username
-        }
-      });
+      // username을 body에 포함 (헤더 대신 body에 포함하여 한글 인코딩 문제 해결)
+      const requestData = {
+        ...applicationData,
+        username: username
+      };
+      
+      const result = await this.post('/applications', requestData);
       
       console.log('ApplicationAPI: 지원 생성 성공:', result);
       return result;
@@ -86,8 +88,20 @@ class ApplicationAPI extends BaseAPI {
     }
   }
 
-  // 지원 상태 변경 (승인/거부)
+  // 지원 상태 변경 (승인/거부) - RESTful 스타일
   async updateApplicationStatus(applicationId, status) {
+    try {
+      return await this.patch(`/applications/${applicationId}/status`, {
+        status: status
+      });
+    } catch (error) {
+      console.error('지원 상태 변경 실패:', error);
+      throw error;
+    }
+  }
+
+  // 지원 상태 변경 (하위 호환성 유지, deprecated)
+  async updateApplicationStatusLegacy(applicationId, status) {
     try {
       return await this.put(`/applications/${applicationId}/status?status=${status}`);
     } catch (error) {
@@ -96,8 +110,46 @@ class ApplicationAPI extends BaseAPI {
     }
   }
 
-  // 지원 승인 및 팀 초대 발송
+  // 지원 승인 및 팀 멤버 추가 (새로운 방식)
+  async approveAndAddToTeam(applicationId) {
+    try {
+      return await this.post(`/applications/${applicationId}/approve`, {}, {
+        headers: {
+          'X-Username': localStorage.getItem('username')
+        }
+      });
+    } catch (error) {
+      console.error('지원 승인 및 팀 멤버 추가 실패:', error);
+      throw error;
+    }
+  }
+
+  // 포지션별로 그룹화된 지원자 목록 조회
+  async getApplicationsByProjectGroupedByPosition(projectId) {
+    try {
+      return await this.get(`/applications/project/${projectId}/by-position`);
+    } catch (error) {
+      console.error('포지션별 지원자 목록 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 지원 승인 및 팀 초대 발송 (하위 호환성 유지, deprecated)
   async approveAndSendInvitation(applicationId) {
+    try {
+      return await this.post(`/applications/${applicationId}/invitation`, {}, {
+        headers: {
+          'X-Username': localStorage.getItem('username')
+        }
+      });
+    } catch (error) {
+      console.error('지원 승인 및 초대 발송 실패:', error);
+      throw error;
+    }
+  }
+
+  // 지원 승인 및 팀 초대 발송 (하위 호환성 유지, deprecated)
+  async approveAndSendInvitationLegacy(applicationId) {
     try {
       return await this.post(`/applications/${applicationId}/approve-and-invite`, {}, {
         headers: {

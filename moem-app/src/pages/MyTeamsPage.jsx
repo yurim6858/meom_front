@@ -18,6 +18,7 @@ export default function MyTeamsPage() {
       setLoading(true);
       setError(null);
       const data = await apiService.teams.getMy();
+      // 백엔드에서 이미 프로젝트 시작 전 팀만 필터링하여 반환하므로 그대로 사용
       setTeams(data);
     } catch (err) {
       console.error('내 팀 목록 조회 실패:', err);
@@ -98,9 +99,9 @@ export default function MyTeamsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">속한 팀이 없습니다</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">프로젝트를 시작하지 않은 팀이 없습니다</h3>
                 <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  프로젝트에 지원하여 팀에 합류하거나, 새로운 프로젝트를 만들어 팀을 구성해보세요.
+                  프로젝트가 시작된 팀은 "내 프로젝트" 페이지에서 관리할 수 있습니다.
                 </p>
                 <div className="flex justify-center space-x-4">
                   <button

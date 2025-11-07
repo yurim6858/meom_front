@@ -4,6 +4,7 @@ import apiService from '../../services/api/index';
 
 const ApplicationList = ({ projectId, isOwner }) => {
   const [applications, setApplications] = useState([]);
+  const [groupedApplications, setGroupedApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const applicationAPI = new ApplicationAPI();
 
@@ -14,9 +15,22 @@ const ApplicationList = ({ projectId, isOwner }) => {
   const loadApplications = async () => {
     try {
       setLoading(true);
-      const data = await applicationAPI.getApplicationsByProject(projectId);
-      setApplications(data);
+      // 포지션별로 그룹화된 지원자 목록 조회
+      const positionData = await applicationAPI.getApplicationsByProjectGroupedByPosition(projectId);
+      
+      if (positionData && positionData.positions) {
+        setGroupedApplications(positionData.positions);
+        // 전체 지원자 목록도 유지 (기존 기능 호환성)
+        const allApplications = positionData.positions.flatMap(pos => pos.applications || []);
+        setApplications(allApplications);
+      } else {
+        // 포지션별 데이터가 없으면 기존 방식으로 조회
+        const data = await applicationAPI.getApplicationsByProject(projectId);
+        setApplications(data);
+        setGroupedApplications([]);
+      }
     } catch (error) {
+      console.error('지원자 목록 로드 실패:', error);
       alert('지원자 목록을 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
@@ -33,13 +47,13 @@ const ApplicationList = ({ projectId, isOwner }) => {
     }
   };
 
-  const handleApproveAndInvite = async (applicationId) => {
+  const handleApproveAndAddToTeam = async (applicationId) => {
     try {
-      await apiService.applications.approveAndInvite(applicationId);
-      alert('지원이 승인되어 팀 초대가 발송되었습니다.');
+      await apiService.applications.approveAndAddToTeam(applicationId);
+      alert('지원이 승인되어 팀 멤버로 추가되었습니다.');
       loadApplications();
     } catch (error) {
-      alert('승인 및 초대 발송에 실패했습니다.');
+      alert('승인 및 팀 멤버 추가에 실패했습니다.');
     }
   };
 
@@ -98,6 +112,93 @@ const ApplicationList = ({ projectId, isOwner }) => {
     );
   }
 
+  // 포지션별로 그룹화된 데이터가 있으면 포지션별로 표시
+  if (groupedApplications.length > 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            지원자 목록 ({applications.length}명)
+          </h3>
+        </div>
+
+        {groupedApplications.map((positionGroup, index) => (
+          <div key={index} className="space-y-3">
+            {/* 포지션 헤더 */}
+            <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+              <h4 className="text-md font-semibold text-gray-900 dark:text-white">
+                {positionGroup.position || '미지정'}
+              </h4>
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {positionGroup.current || 0} / {positionGroup.required || 0}명
+                </span>
+                {positionGroup.isRecruitmentCompleted && (
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+                    모집 완료
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* 해당 포지션의 지원자 목록 */}
+            {positionGroup.applications && positionGroup.applications.length > 0 ? (
+              <div className="space-y-3">
+                {positionGroup.applications.map((application) => (
+                  <div key={application.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {application.applicantUsername}
+                          </span>
+                          {getStatusBadge(application.status)}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {formatDate(application.appliedAt)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {application.message && (
+                      <div className="mb-3">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                          {application.message}
+                        </p>
+                      </div>
+                    )}
+
+                    {isOwner && application.status === 'PENDING' && (
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleApproveAndAddToTeam(application.id)}
+                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          승인 & 팀 추가
+                        </button>
+                        <button
+                          onClick={() => handleStatusChange(application.id, 'REJECTED')}
+                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          거절
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
+                이 포지션에 지원자가 없습니다.
+              </p>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  // 포지션별 데이터가 없으면 기존 방식으로 표시
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -115,6 +216,11 @@ const ApplicationList = ({ projectId, isOwner }) => {
                   {application.applicantUsername}
                 </span>
                 {getStatusBadge(application.status)}
+                {application.appliedPosition && (
+                  <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded">
+                    {application.appliedPosition}
+                  </span>
+                )}
               </div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {formatDate(application.appliedAt)}
@@ -133,10 +239,10 @@ const ApplicationList = ({ projectId, isOwner }) => {
           {isOwner && application.status === 'PENDING' && (
             <div className="flex space-x-2">
               <button
-                onClick={() => handleApproveAndInvite(application.id)}
+                onClick={() => handleApproveAndAddToTeam(application.id)}
                 className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
               >
-                승인 & 초대
+                승인 & 팀 추가
               </button>
               <button
                 onClick={() => handleStatusChange(application.id, 'REJECTED')}

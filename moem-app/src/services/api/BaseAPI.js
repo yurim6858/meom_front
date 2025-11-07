@@ -59,6 +59,12 @@ class BaseAPI {
     return response.data;
   }
 
+  // PATCH 요청
+  async patch(endpoint, data, options = {}) {
+    const response = await this.axiosInstance.patch(endpoint, data, options);
+    return response.data;
+  }
+
 }
 
 export default BaseAPI;

@@ -1,7 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ApplicationAPI } from '../../services/api/index';
 
-const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPositions = [] }) => {
+const ApplicationModal = ({
+  isOpen,
+  onClose,
+  projectId,
+  projectTitle,
+  projectPositions = [],
+  positionsStatus = [],
+  isRecruitmentClosed = false,
+  onApplicationCreated = async () => {}
+}) => {
   const [message, setMessage] = useState('');
   const [selectedPosition, setSelectedPosition] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -11,7 +20,24 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
     return username ? { username } : null;
   };
   const currentUser = getCurrentUser();
-  const applicationAPI = new ApplicationAPI();
+  const applicationAPI = useMemo(() => new ApplicationAPI(), []);
+
+  const normalizedPositions = useMemo(() => {
+    if (positionsStatus.length > 0) {
+      return positionsStatus.map((position) => ({
+        role: position.position ?? position.role ?? '',
+        required: position.required ?? position.headcount ?? 0,
+        current: position.current ?? 0,
+        isRecruitmentCompleted: !!position.isRecruitmentCompleted,
+      })).filter((position) => !!position.role);
+    }
+    return projectPositions.map((position) => ({
+      role: position.role,
+      required: position.headcount ?? 0,
+      current: 0,
+      isRecruitmentCompleted: false,
+    })).filter((position) => !!position.role);
+  }, [positionsStatus, projectPositions]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -30,6 +56,17 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
       return;
     }
 
+    if (isRecruitmentClosed) {
+      alert('이 프로젝트는 이미 모집이 완료되었습니다.');
+      return;
+    }
+
+    const selectedPositionInfo = normalizedPositions.find((position) => position.role === selectedPosition);
+    if (selectedPositionInfo?.isRecruitmentCompleted) {
+      alert('선택한 포지션은 이미 모집이 완료되었습니다. 다른 포지션을 선택해주세요.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       console.log('지원 요청 데이터:', {
@@ -45,6 +82,7 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
         appliedPosition: selectedPosition
       }, currentUser?.username);
       
+      await onApplicationCreated();
       alert('지원이 완료되었습니다!');
       onClose();
       setMessage('');
@@ -53,11 +91,14 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
       console.error('지원 생성 오류:', error);
       console.error('오류 상세:', error.response?.data);
       console.error('오류 상태:', error.response?.status);
-      alert(`지원 실패: ${error.message || '네트워크 오류가 발생했습니다.'}`);
+      const serverMessage = error.response?.data?.message || error.response?.data?.error || error.message;
+      alert(`지원 실패: ${serverMessage || '네트워크 오류가 발생했습니다.'}`);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  const isSubmitDisabled = isSubmitting || !message.trim() || !selectedPosition || isRecruitmentClosed;
 
   if (!isOpen) return null;
 
@@ -82,6 +123,11 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
             프로젝트: <span className="font-medium">{projectTitle}</span>
           </p>
+          {isRecruitmentClosed && (
+            <div className="mt-3 p-3 rounded-lg bg-amber-50 text-amber-700 text-sm dark:bg-amber-500/20 dark:text-amber-100">
+              모든 모집이 완료된 프로젝트입니다. 추가 지원을 받을 수 없습니다.
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -94,11 +140,17 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
               onChange={(e) => setSelectedPosition(e.target.value)}
               className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
               required
+              disabled={isRecruitmentClosed}
             >
               <option value="">포지션을 선택해주세요</option>
-              {projectPositions.map((position, index) => (
-                <option key={index} value={position.role}>
-                  {position.role} ({position.headcount}명)
+              {normalizedPositions.map((position, index) => (
+                <option
+                  key={index}
+                  value={position.role}
+                  disabled={position.isRecruitmentCompleted}
+                >
+                  {position.role}
+                  {` (${position.current ?? 0}/${position.required ?? 0}명${position.isRecruitmentCompleted ? ' · 모집 완료' : ''})`}
                 </option>
               ))}
             </select>
@@ -115,6 +167,7 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
               className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none"
               rows={4}
               maxLength={500}
+              disabled={isRecruitmentClosed}
             />
             <div className="text-right text-xs text-gray-500 mt-1">
               {message.length}/500
@@ -131,10 +184,14 @@ const ApplicationModal = ({ isOpen, onClose, projectId, projectTitle, projectPos
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || !message.trim() || !selectedPosition}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200"
+              disabled={isSubmitDisabled}
+              className={`px-4 py-2 text-white rounded-lg transition-colors duration-200 ${
+                isSubmitDisabled
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-blue-600 hover:bg-blue-700'
+              }`}
             >
-              {isSubmitting ? '지원 중...' : '지원하기'}
+              {isRecruitmentClosed ? '모집이 마감되었습니다' : (isSubmitting ? '지원 중...' : '지원하기')}
             </button>
           </div>
         </form>

@@ -32,33 +32,23 @@ const DropdownMenu = ({ isOpen, onClose }) => {
       title: '내 공고 관리',
       path: '/my-posts',
       icon: '📋'
-    },
-    {
-      title: '내 초대',
-      path: '/my-invitations',
-      icon: '📬'
-    },
-    {
-      title: '내 팀',
-      path: '/my-teams',
-      icon: '👥'
-    },
+    }
   ];
 
   if (!isOpen) return null;
 
   return (
     <div 
-      className="dropdown-menu absolute top-full right-0 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
-      style={{ marginTop: '0px' }} // 간격 제거
-    
+      className="dropdown-menu absolute top-full right-0 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50"
+      style={{ marginTop: '0px' }}
     >
       <div className="py-2">
         {menuItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition-colors duration-200"
+            className="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200"
+            onClick={onClose}
           >
             <span className="text-lg mr-3">{item.icon}</span>
             <span className="text-sm font-medium">{item.title}</span>

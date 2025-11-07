@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import LoadingSpinner from '../components/shared/LoadingSpinner';
 import apiService from '../services/api/index';
@@ -28,11 +28,6 @@ export default function TeamDetailPage() {
     setCurrentUser(user);
   }, []);
 
-  useEffect(() => {
-    if (teamInfo?.projectId) {
-      loadStartReady();
-    }
-  }, [teamInfo]);
 
   useEffect(() => {
     // 팀 정보가 로드되면 현재 사용자가 리더인지 확인
@@ -41,12 +36,12 @@ export default function TeamDetailPage() {
       console.log('현재 사용자:', currentUser);
       console.log('팀 멤버들:', teamInfo.members);
       
-      const leaderMember = teamInfo.members?.find(member => member.role === 'Leader');
+      const leaderMember = teamInfo.members?.find(member => member.role === 'MANAGER' || member.role === 'Leader');
       console.log('리더 멤버:', leaderMember);
       
-      const isCurrentUserLeader = leaderMember && leaderMember.name === currentUser.username;
+      const isCurrentUserLeader = leaderMember && leaderMember.username === currentUser.username;
       console.log('현재 사용자가 리더인가?', isCurrentUserLeader);
-      console.log('리더 사용자명:', leaderMember?.name);
+      console.log('리더 사용자명:', leaderMember?.username);
       console.log('현재 사용자명:', currentUser.username);
       
       setIsLeader(isCurrentUserLeader);
@@ -67,7 +62,7 @@ export default function TeamDetailPage() {
     }
   };
 
-  const loadStartReady = async () => {
+  const loadStartReady = useCallback(async () => {
     try {
       // 팀 정보에서 프로젝트 ID를 가져와서 사용
       if (teamInfo?.projectId) {
@@ -75,25 +70,51 @@ export default function TeamDetailPage() {
         setStartReady(data);
       } else {
         console.log('팀과 연결된 프로젝트가 없습니다.');
+        setStartReady(null);
       }
     } catch (err) {
-      console.error('시작 준비 상태 조회 실패:', err);
+      // 404 에러는 백엔드 엔드포인트가 아직 구현되지 않은 경우
+      if (err.response?.status === 404) {
+        console.warn('시작 준비 상태 조회 엔드포인트가 아직 구현되지 않았습니다:', err.response?.config?.url);
+        // 백엔드 엔드포인트가 구현되면 자동으로 동작합니다
+        setStartReady(null);
+      } else {
+        console.error('시작 준비 상태 조회 실패:', err);
+        setStartReady(null);
+      }
       // 에러가 발생해도 메인 기능에는 영향 없음
     }
-  };
+  }, [id, teamInfo?.projectId]);
+
+  useEffect(() => {
+    if (teamInfo?.projectId) {
+      loadStartReady();
+    }
+  }, [teamInfo?.projectId, teamInfo?.totalMembers, loadStartReady]); // projectId나 멤버 수가 변경될 때마다 startReady 다시 로드
 
   const handleStartProject = async () => {
     if (!startReady?.isReadyToStart || !teamInfo?.projectId) return;
     
     try {
       setStarting(true);
-      await apiService.teams.startProject(id, teamInfo.projectId);
+      const response = await apiService.teams.startProject(id, teamInfo.projectId);
+      console.log('프로젝트 시작 응답:', response);
       alert('프로젝트가 성공적으로 시작되었습니다!');
-      // 프로젝트 관리 페이지로 이동 (향후 구현)
-      // navigate(`/projects/${teamInfo.projectId}/manage`);
+      // 프로젝트 관리 페이지로 이동
+      navigate(`/projects/${teamInfo.projectId}/manage`);
     } catch (err) {
       console.error('프로젝트 시작 실패:', err);
-      alert('프로젝트 시작에 실패했습니다: ' + (err.response?.data || err.message));
+      console.error('에러 응답:', err.response?.data);
+      console.error('에러 상태:', err.response?.status);
+      
+      // 404 에러인 경우 백엔드 API가 아직 구현되지 않았을 가능성
+      if (err.response?.status === 404) {
+        const errorMessage = err.response?.data?.message || err.response?.data?.error || '백엔드 API가 아직 구현되지 않았을 수 있습니다.';
+        alert(`프로젝트 시작 API를 찾을 수 없습니다.\n\n에러: ${errorMessage}\n\n엔드포인트: POST /api/teams/${id}/start-project\n\n백엔드 개발자에게 해당 엔드포인트 구현을 요청해주세요.`);
+      } else {
+        const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || '알 수 없는 오류가 발생했습니다.';
+        alert(`프로젝트 시작에 실패했습니다.\n\n에러: ${errorMessage}`);
+      }
     } finally {
       setStarting(false);
     }
@@ -313,25 +334,29 @@ export default function TeamDetailPage() {
                         <div className="flex items-center space-x-4">
                           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold text-lg">
-                              {member.name.charAt(0).toUpperCase()}
+                              {member.username && member.username.length > 0 
+                                ? member.username.charAt(0).toUpperCase() 
+                                : '?'}
                             </span>
                           </div>
                           <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white">{member.name}</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{member.role}</p>
+                            <h3 className="font-semibold text-gray-900 dark:text-white">
+                              {member.username || '이름 없음'}
+                            </h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {member.role || 'MEMBER'}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            member.status === 'Active' 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300'
-                          }`}>
-                            {member.status}
+                          <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                            활성
                           </span>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatDate(member.CreatedAt)}
-                          </span>
+                          {member.createdAt && (
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {formatDate(member.createdAt)}
+                            </span>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -396,12 +421,13 @@ export default function TeamDetailPage() {
                   >
                     멤버 관리
                   </button>
-                  <button
+                  {/* 초대 기능 제거됨 - 지원 승인 시 바로 팀 멤버 추가 */}
+                  {/* <button
                     onClick={() => navigate(`/teams/${id}/invitations`)}
                     className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg transition-colors"
                   >
                     초대 관리
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>

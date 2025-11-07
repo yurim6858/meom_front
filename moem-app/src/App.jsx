@@ -14,9 +14,16 @@ import LandingPage from "./pages/LandingPage";
 import DashBoard from './pages/DashBoard';
 import ReviewPage from "./pages/ReviewPage";
 import MyPage from "./pages/MyPage";
-import MyInvitationsPage from "./pages/MyInvitationsPage";
+// 초대 기능 제거됨 - 지원 승인 시 바로 팀 멤버 추가
+// import MyInvitationsPage from "./pages/MyInvitationsPage";
 import MyTeamsPage from "./pages/MyTeamsPage";
+import MyProjectsPage from "./pages/MyProjectsPage";
+import MyApplicationsPage from "./pages/MyApplicationsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
+import TeamEditPage from "./pages/TeamEditPage";
+import TeamMembersPage from "./pages/TeamMembersPage";
+// import TeamInvitationsPage from "./pages/TeamInvitationsPage";
+import ProjectManagePage from "./pages/ProjectManagePage";
 import AiRecommendPage from './pages/matching/AiRecommendPage';
 
 import LoginPage from "./pages/auth/LoginPage";
@@ -44,9 +51,17 @@ function App() {
           <Route path='/my-posts' element={<ManagementPage/>} />
           <Route path='/review' element={<ReviewPage/>} />
           <Route path='/mypage' element={<MyPage/>} />
-          <Route path='/my-invitations' element={<MyInvitationsPage/>} />
+          {/* 초대 기능 제거됨 - 지원 승인 시 바로 팀 멤버 추가 */}
+          {/* <Route path='/my-invitations' element={<MyInvitationsPage/>} /> */}
+          <Route path='/my-applications' element={<MyApplicationsPage/>} />
           <Route path='/my-teams' element={<MyTeamsPage/>} />
+          <Route path='/my-projects' element={<MyProjectsPage/>} />
           <Route path='/teams/:id' element={<TeamDetailPage/>} />
+          <Route path='/teams/:id/edit' element={<TeamEditPage/>} />
+          <Route path='/teams/:id/members' element={<TeamMembersPage/>} />
+          {/* 초대 기능 제거됨 - 지원 승인 시 바로 팀 멤버 추가 */}
+          {/* <Route path='/teams/:id/invitations' element={<TeamInvitationsPage/>} /> */}
+          <Route path='/projects/:id/manage' element={<ProjectManagePage/>} />
           <Route path="/matching/ai-recommend" element={<AiRecommendPage />} />
         </Route>
       </Routes>

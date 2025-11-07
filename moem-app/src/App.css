@@ -89,7 +89,7 @@
   background-color: #fff;
 }
 .login-input:focus {
-  border-color: gainsbor;  
+  border-color: gainsboro;  
   outline: none;
 }
 /* 로그인 버튼 */

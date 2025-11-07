@@ -63,6 +63,51 @@ class ProjectAPI extends BaseAPI {
       throw error;
     }
   }
+
+  // 내가 속한 프로젝트 목록 조회 (프로젝트 시작 후)
+  async getMyProjects() {
+    try {
+      return await this.get('/projects/my', {
+        headers: {
+          'X-Username': localStorage.getItem('username')
+        }
+      });
+    } catch (error) {
+      console.error('내 프로젝트 목록 조회 실패:', error);
+      throw error;
+    }
+  }
+
+  // 시작된 프로젝트 상세 조회 (프로젝트 시작 후)
+  async getStartedProject(id) {
+    try {
+      return await this.get(`/projects/${id}`, {
+        headers: {
+          'X-Username': localStorage.getItem('username')
+        }
+      });
+    } catch (error) {
+      console.error('프로젝트 상세 조회 실패:', error);
+      if (error.response?.status === 404) {
+        throw new Error('NOT_FOUND');
+      }
+      throw error;
+    }
+  }
+
+  // 프로젝트 종료
+  async endProject(id) {
+    try {
+      return await this.put(`/projects/${id}/end`, {}, {
+        headers: {
+          'X-Username': localStorage.getItem('username')
+        }
+      });
+    } catch (error) {
+      console.error('프로젝트 종료 실패:', error);
+      throw error;
+    }
+  }
 }
 
 export default ProjectAPI;

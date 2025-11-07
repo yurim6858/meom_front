@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ApplicationModal from "../../components/shared/ApplicationModal";
@@ -15,8 +15,8 @@ export default function ProjectDetailPage() {
     const userId = localStorage.getItem('userId');
     return username ? { username, email, id: userId } : null;
   };
-  const projectAPI = new ProjectAPI();
-  const applicationAPI = new ApplicationAPI();
+  const projectAPI = useMemo(() => new ProjectAPI(), []);
+  const applicationAPI = useMemo(() => new ApplicationAPI(), []);
   const currentUser = useMemo(() => getCurrentUser(), []); // currentUser 메모이제이션
   
   const [posting, setPosting] = useState(null);
@@ -24,39 +24,93 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [positionStatus, setPositionStatus] = useState([]);
+  const [allPositionsCompleted, setAllPositionsCompleted] = useState(false);
+
+  const refreshApplicationData = useCallback(async () => {
+    if (!id) {
+      setPositionStatus([]);
+      setAllPositionsCompleted(false);
+      setHasApplied(false);
+      return;
+    }
+
+    try {
+      const [positionSummary, applications] = await Promise.all([
+        applicationAPI.getApplicationsByProjectGroupedByPosition(id),
+        currentUser ? applicationAPI.getApplicationsByProject(id) : Promise.resolve([])
+      ]);
+
+      setPositionStatus(positionSummary?.positions ?? []);
+      setAllPositionsCompleted(positionSummary?.allPositionsCompleted ?? false);
+
+      if (currentUser) {
+        const userApplication = applications.find(
+          (app) => app.applicantUsername === currentUser.username && app.status !== 'WITHDRAWN'
+        );
+        setHasApplied(!!userApplication);
+      } else {
+        setHasApplied(false);
+      }
+    } catch (error) {
+      console.error("지원 및 모집 정보 갱신 실패:", error);
+      if (!currentUser) {
+        setHasApplied(false);
+      }
+      setPositionStatus([]);
+      setAllPositionsCompleted(false);
+    }
+  }, [applicationAPI, currentUser, id]);
 
   // 상세 조회
   useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    let isMounted = true;
+
     const fetchPosting = async () => {
       try {
         setLoading(true);
         setError(null);
         const data = await projectAPI.getProject(id);
+        if (!isMounted) return;
         setPosting(data);
-        
-        // 지원 여부 확인
-        if (currentUser) {
-          try {
-            const applications = await applicationAPI.getApplicationsByProject(id);
-            const userApplication = applications.find(app => app.applicantUsername === currentUser.username);
-            setHasApplied(!!userApplication);
-          } catch (err) {
-            console.error("지원 여부 확인 실패:", err);
-          }
-        }
       } catch (err) {
         console.error("공고 상세 조회 실패:", err);
+        if (!isMounted) return;
         setError(err.message === "NOT_FOUND" ? "NOT_FOUND" : "공고를 불러오는데 실패했습니다.");
         setPosting(null);
       } finally {
+        if (!isMounted) return;
         setLoading(false);
       }
     };
 
-    if (id) {
-      fetchPosting();
+    fetchPosting();
+    refreshApplicationData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, projectAPI, refreshApplicationData]);
+  const positionsWithStatus = useMemo(() => {
+    if (positionStatus.length > 0) {
+      return positionStatus;
     }
-  }, [id, currentUser]);
+    if (!posting || !posting.positions) {
+      return [];
+    }
+    return posting.positions.map((position) => ({
+      position: position.role,
+      required: position.headcount ?? 0,
+      current: 0,
+      isRecruitmentCompleted: false,
+    }));
+  }, [positionStatus, posting]);
+
+  const isRecruitmentClosed = allPositionsCompleted;
 
   const handleRetry = () => {
     window.location.reload();
@@ -169,6 +223,11 @@ export default function ProjectDetailPage() {
                     <span className="text-sm text-gray-500 dark:text-gray-400">
                       마감일: {posting.deadline ?? "-"}
                     </span>
+                    {isRecruitmentClosed && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-amber-200 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+                        모집 완료
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -219,15 +278,26 @@ export default function ProjectDetailPage() {
                       </svg>
                       모집 포지션
                     </h3>
-                    {posting.positions && posting.positions.length > 0 ? (
+                    {positionsWithStatus && positionsWithStatus.length > 0 ? (
                       <div className="space-y-2">
-                        {posting.positions.map((position, i) => (
+                        {positionsWithStatus.map((position, i) => (
                           <div
                             key={`${posting.id}-position-${i}`}
                             className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
                           >
-                            <span className="font-medium text-gray-900 dark:text-white">{position.role}</span>
-                            <span className="text-sm text-gray-600 dark:text-gray-300">{position.headcount}명</span>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900 dark:text-white">{position.position ?? position.role ?? '미지정'}</span>
+                              <span className="text-xs text-gray-500 dark:text-gray-300">
+                                {position.current ?? 0} / {position.required ?? position.headcount ?? 0}명
+                              </span>
+                            </div>
+                            {position.isRecruitmentCompleted ? (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+                                모집 완료
+                              </span>
+                            ) : (
+                              <span className="text-sm text-gray-600 dark:text-gray-300">모집중</span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -309,14 +379,18 @@ export default function ProjectDetailPage() {
                   {currentUser && currentUser.username !== posting.username ? (
                     <button
                       className={`w-full font-semibold py-3 px-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md ${
-                        hasApplied 
-                          ? 'bg-gray-400 text-white cursor-not-allowed' 
+                        hasApplied || isRecruitmentClosed
+                          ? 'bg-gray-400 text-white cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
                       }`}
-                      onClick={() => !hasApplied && setIsApplicationModalOpen(true)}
-                      disabled={hasApplied}
+                      onClick={() => !hasApplied && !isRecruitmentClosed && setIsApplicationModalOpen(true)}
+                      disabled={hasApplied || isRecruitmentClosed}
                     >
-                      {hasApplied ? '이미 지원했습니다' : '이 팀에 지원하기'}
+                      {isRecruitmentClosed
+                        ? '모집이 마감되었습니다'
+                        : hasApplied
+                          ? '이미 지원했습니다'
+                          : '이 팀에 지원하기'}
                     </button>
                   ) : (
                     <div className="w-full bg-gray-300 text-gray-500 font-semibold py-3 px-4 rounded-xl text-center">
@@ -370,17 +444,14 @@ export default function ProjectDetailPage() {
         isOpen={isApplicationModalOpen}
         onClose={() => {
           setIsApplicationModalOpen(false);
-          // 지원 완료 후 지원 여부 다시 확인
-          if (currentUser) {
-            applicationAPI.getApplicationsByProject(id).then(applications => {
-              const userApplication = applications.find(app => app.applicantUsername === currentUser.username);
-              setHasApplied(!!userApplication);
-            }).catch(console.error);
-          }
+          refreshApplicationData();
         }}
         projectId={id}
         projectTitle={posting?.title}
         projectPositions={posting?.positions || []}
+        positionsStatus={positionStatus}
+        isRecruitmentClosed={isRecruitmentClosed}
+        onApplicationCreated={refreshApplicationData}
       />
     </section>
   );

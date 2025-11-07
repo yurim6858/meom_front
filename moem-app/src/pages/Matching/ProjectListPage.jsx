@@ -4,16 +4,18 @@ import DdayBadge from "../../components/shared/DdayBadge";
 import InitialBadge from "../../components/shared/InitialBadge";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import SearchInput from "../../components/shared/SearchInput";
-import { ProjectAPI } from "../../services/api/index";
+import { ProjectAPI, ApplicationAPI } from "../../services/api/index";
 
 const ProjectListPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [postings, setPostings] = useState([]);
+  const [postingsWithStatus, setPostingsWithStatus] = useState([]);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
   const projectAPI = new ProjectAPI();
+  const applicationAPI = new ApplicationAPI();
 
   useEffect(() => {
     const fetchPostings = async () => {
@@ -21,13 +23,35 @@ const ProjectListPage = () => {
         setLoading(true);
         setError(null);
         
-        
         const data = await projectAPI.getProjects();
-        setPostings(Array.isArray(data) ? data : []);
+        const postingsArray = Array.isArray(data) ? data : [];
+        setPostings(postingsArray);
+        
+        // 각 공고의 모집 완료 상태 확인
+        const postingsWithRecruitmentStatus = await Promise.all(
+          postingsArray.map(async (posting) => {
+            try {
+              const positionSummary = await applicationAPI.getApplicationsByProjectGroupedByPosition(posting.id);
+              return {
+                ...posting,
+                isRecruitmentCompleted: positionSummary?.allPositionsCompleted ?? false,
+              };
+            } catch (err) {
+              console.error(`공고 ${posting.id} 모집 상태 확인 실패:`, err);
+              return {
+                ...posting,
+                isRecruitmentCompleted: false,
+              };
+            }
+          })
+        );
+        
+        setPostingsWithStatus(postingsWithRecruitmentStatus);
       } catch (err) {
         console.error("공고 불러오기 실패:", err);
         setError(err.message || "공고를 불러오는데 실패했습니다.");
         setPostings([]);
+        setPostingsWithStatus([]);
       } finally {
         setLoading(false);
       }
@@ -36,21 +60,33 @@ const ProjectListPage = () => {
     fetchPostings();
   }, []);
 
-  const filteredPostings = useMemo(() => {
+  const filteredAndSortedPostings = useMemo(() => {
     const searchKeyword = searchQuery.trim().toLowerCase();
-    if (!searchKeyword) return postings;
-
-    return postings.filter((posting) => {
-      const titleMatch = posting.title?.toLowerCase().includes(searchKeyword);
-      const introMatch = posting.intro?.toLowerCase().includes(searchKeyword);
-      const descMatch = posting.description?.toLowerCase().includes(searchKeyword);
-      const tagsMatch = (posting.tags || []).some((tag) =>
-        tag?.toLowerCase().includes(searchKeyword)
-      );
-      const usernameMatch = posting.username?.toLowerCase().includes(searchKeyword);
-      return titleMatch || introMatch || descMatch || tagsMatch || usernameMatch;
+    
+    // 검색 필터링
+    let filtered = postingsWithStatus;
+    if (searchKeyword) {
+      filtered = postingsWithStatus.filter((posting) => {
+        const titleMatch = posting.title?.toLowerCase().includes(searchKeyword);
+        const introMatch = posting.intro?.toLowerCase().includes(searchKeyword);
+        const descMatch = posting.description?.toLowerCase().includes(searchKeyword);
+        const tagsMatch = (posting.tags || []).some((tag) =>
+          tag?.toLowerCase().includes(searchKeyword)
+        );
+        const usernameMatch = posting.username?.toLowerCase().includes(searchKeyword);
+        return titleMatch || introMatch || descMatch || tagsMatch || usernameMatch;
+      });
+    }
+    
+    // 정렬: 모집 완료된 공고는 후순위로
+    return filtered.sort((a, b) => {
+      // 모집 완료된 공고는 뒤로
+      if (a.isRecruitmentCompleted && !b.isRecruitmentCompleted) return 1;
+      if (!a.isRecruitmentCompleted && b.isRecruitmentCompleted) return -1;
+      // 둘 다 모집 완료이거나 둘 다 모집 중이면 원래 순서 유지
+      return 0;
     });
-  }, [postings, searchQuery]);
+  }, [postingsWithStatus, searchQuery]);
 
   const handleCardClick = (id) => {
     navigate(`/project-posts/${id}`);
@@ -114,7 +150,7 @@ const ProjectListPage = () => {
         </div>
 
         {/* 공고 목록 */}
-        {filteredPostings.length === 0 ? (
+        {filteredAndSortedPostings.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-gray-400 text-lg mb-4">
               {searchQuery ? "검색 결과가 없습니다." : "등록된 공고가 없습니다."}
@@ -130,11 +166,15 @@ const ProjectListPage = () => {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-            {filteredPostings.map((posting) => (
+            {filteredAndSortedPostings.map((posting) => (
               <div
                 key={posting.id}
                 onClick={() => handleCardClick(posting.id)}
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-all duration-200 cursor-pointer"
+                className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm border overflow-hidden transition-all duration-200 cursor-pointer ${
+                  posting.isRecruitmentCompleted
+                    ? 'border-amber-200 dark:border-amber-800 opacity-75 hover:opacity-90'
+                    : 'border-gray-200 dark:border-gray-700 hover:shadow-md'
+                }`}
               >
                 <div className="p-6">
                   {/* 헤더 */}
@@ -147,11 +187,22 @@ const ProjectListPage = () => {
                         </p>
                       </div>
                     </div>
-                    <DdayBadge dateStr={posting.deadline} />
+                    <div className="flex items-center gap-2">
+                      {posting.isRecruitmentCompleted && (
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200">
+                          모집 완료
+                        </span>
+                      )}
+                      <DdayBadge dateStr={posting.deadline} />
+                    </div>
                   </div>
 
                   {/* 제목 */}
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+                  <h3 className={`text-lg font-semibold mb-2 line-clamp-2 ${
+                    posting.isRecruitmentCompleted
+                      ? 'text-gray-600 dark:text-gray-400'
+                      : 'text-gray-900 dark:text-white'
+                  }`}>
                     {posting.title}
                   </h3>
 
