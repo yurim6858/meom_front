@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import ApplicationModal from "../../components/shared/ApplicationModal";
@@ -13,7 +13,7 @@ export default function ProjectDetailPage() {
     const username = localStorage.getItem('username');
     const email = localStorage.getItem('email');
     const userId = localStorage.getItem('userId');
-    return username ? { username, email, id: userId } : null;
+    return username ? { username, email, id: userId ? Number(userId) :null } : null;
   };
   const projectAPI = new ProjectAPI();
   const applicationAPI = new ApplicationAPI();
@@ -24,6 +24,33 @@ export default function ProjectDetailPage() {
   const [error, setError] = useState(null);
   const [isApplicationModalOpen, setIsApplicationModalOpen] = useState(false);
   const [hasApplied, setHasApplied] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiRecommendation, setAiRecommendation] = useState(null);
+
+  const fetchAiRecommendation = useCallback(async (currentProjectId, currentUserId) => {
+    if (!currentProjectId || !currentUserId) return;
+
+    setAiLoading(true);
+    setAiRecommendation("AI 추천 요약 (분석 중...)"); // 로딩 메시지
+    
+    try {
+        // GET /api/project-match/reason/{userId}/{projectId} 호출
+        const response = await fetch(`${MATCH_API_BASE}/${currentUserId}/${currentProjectId}`);
+        
+        if (response.ok) {
+            const reason = await response.text();
+            setAiRecommendation(reason);
+        } else {
+            setAiRecommendation("AI 추천 이유를 불러오는 데 실패했습니다.");
+            console.error("AI API 호출 실패:", response.status, await response.text());
+        }
+    } catch (err) {
+        setAiRecommendation("네트워크 오류 발생. 서버 연결 확인 필요.");
+        console.error("AI API 네트워크 오류:", err);
+    } finally {
+        setAiLoading(false);
+    }
+}, []);
 
   // 상세 조회
   useEffect(() => {
@@ -35,13 +62,14 @@ export default function ProjectDetailPage() {
         setPosting(data);
         
         // 지원 여부 확인
-        if (currentUser) {
+        if (currentUser && currentUser.id) {
           try {
             const applications = await applicationAPI.getApplicationsByProject(id);
             const userApplication = applications.find(app => app.applicantUsername === currentUser.username);
             setHasApplied(!!userApplication);
+            fetchAiRecommendation(data.id, currentUser.id);
           } catch (err) {
-            console.error("지원 여부 확인 실패:", err);
+            console.error("지원 여부 및 AI 호출 실패:", err);
           }
         }
       } catch (err) {
@@ -56,7 +84,7 @@ export default function ProjectDetailPage() {
     if (id) {
       fetchPosting();
     }
-  }, [id, currentUser]);
+  }, [id, currentUser, fetchAiRecommendation]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -76,6 +104,8 @@ export default function ProjectDetailPage() {
       alert("삭제 중 오류가 발생했습니다.");
     }
   };
+
+  const MATCH_API_BASE = "/api/project-match/reason"; // API 경로 정의
 
   if (loading) {
     return (
@@ -173,6 +203,29 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
             </div>
+
+            {currentUser && currentUser.id && (
+                <div className="bg-white rounded-2xl shadow-lg border border-green-300 dark:bg-gray-800 dark:border-green-800 transition-shadow duration-300 hover:shadow-xl">
+                  <div className="p-8">
+                    <h2 className="text-xl font-bold text-green-700 dark:text-green-400 mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5 fill-green-600 dark:fill-green-400" viewBox="0 0 24 24">
+                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                        </svg>
+                        AI 맞춤 추천 요약 (나에게 적합한 이유)
+                    </h2>
+                    <div className="text-lg text-gray-800 dark:text-gray-200 min-h-[40px] mt-4">
+                      {aiLoading ? (
+                        <div className="flex items-center gap-3">
+                            <LoadingSpinner size="sm" /> 
+                            <span className="text-base text-zinc-500">AI가 Gemini 모델로 매칭 이유를 분석 중입니다...</span>
+                        </div>
+                      ) : (
+                        <p className="whitespace-pre-line font-medium">{aiRecommendation || "추천 이유를 불러올 수 없습니다."}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+            )}
 
             {/* 프로젝트 설명 카드 */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
