@@ -211,7 +211,7 @@ export default function ProjectDetailPage() {
                         <svg className="w-5 h-5 fill-green-600 dark:fill-green-400" viewBox="0 0 24 24">
                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
                         </svg>
-                        AI 맞춤 추천 요약 (나에게 적합한 이유)
+                        AI 맞춤 추천/비추천 요약
                     </h2>
                     <div className="text-lg text-gray-800 dark:text-gray-200 min-h-[40px] mt-4">
                       {aiLoading ? (
