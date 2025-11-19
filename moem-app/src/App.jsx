@@ -18,6 +18,7 @@ import MyInvitationsPage from "./pages/MyInvitationsPage";
 import MyTeamsPage from "./pages/MyTeamsPage";
 import TeamDetailPage from "./pages/TeamDetailPage";
 import AiRecommendPage from './pages/matching/AiRecommendPage';
+import ContestListPage from './pages/contest/ContestListPage';
 
 import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
@@ -47,6 +48,7 @@ function App() {
           <Route path='/my-invitations' element={<MyInvitationsPage/>} />
           <Route path='/my-teams' element={<MyTeamsPage/>} />
           <Route path='/teams/:id' element={<TeamDetailPage/>} />
+          <Route path="/contests" element={<ContestListPage />} />
           <Route path="/matching/ai-recommend" element={<AiRecommendPage />} />
         </Route>
       </Routes>
