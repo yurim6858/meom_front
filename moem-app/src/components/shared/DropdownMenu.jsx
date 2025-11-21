@@ -4,14 +4,14 @@ import { Link } from 'react-router-dom';
 const DropdownMenu = ({ isOpen, onClose }) => {
   const menuItems = [
     {
-      title: 'AI 추천',
-      path: '/matching/ai-recommend',
-      icon: '🤖'
-    },
-    {
       title: '프로젝트 탐색',
       path: '/project-posts',
       icon: '🔍'
+    },
+    {
+      title: '공모전 탐색',
+      path: '/contests',
+      icon: '🏆'
     },
     {
       title: '프로젝트 등록',

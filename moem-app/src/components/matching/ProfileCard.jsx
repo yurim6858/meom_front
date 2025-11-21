@@ -5,9 +5,12 @@ export default function ProfileCard({ profile, saved, onToggleSave, onInvite, on
     <article className="rounded-2xl shadow-sm border border-slate-200/60 bg-white p-5">
       <header className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-xl font-semibold tracking-tight">{profile.name}</h3>
-          <p className="text-slate-500 text-sm mt-0.5">{profile.role}</p>
-          {profile.note && <p className="text-slate-600 text-sm mt-2 line-clamp-1">{profile.note}</p>}
+          {/* UserPost: name -> username */}
+          <h3 className="text-xl font-semibold tracking-tight">{profile.username}</h3>
+          {/* UserPost: role -> workStyle */}
+          <p className="text-slate-500 text-sm mt-0.5">{profile.workStyle}</p>
+          {/* UserPost: note -> intro */}
+          {profile.intro && <p className="text-slate-600 text-sm mt-2 line-clamp-1">{profile.intro}</p>}
         </div>
         <button
           className={`p-2 rounded-full border ${saved ? "border-teal-200 bg-teal-50 text-teal-600" : "border-slate-200 text-slate-500 hover:bg-slate-50"}`}
@@ -25,6 +28,7 @@ export default function ProfileCard({ profile, saved, onToggleSave, onInvite, on
       </header>
 
       <div className="flex flex-wrap items-center gap-2 mt-3">
+        {/* skills 필드는 이름이 동일 */}
         {profile.skills?.map((s) => (
           <span key={s} className="rounded-full px-3 py-1 text-sm border border-slate-200 text-slate-700">
             {s} 
@@ -32,29 +36,13 @@ export default function ProfileCard({ profile, saved, onToggleSave, onInvite, on
         ))}
       </div>
 
-      <div className="flex items-center justify-between mt-4">
+      <div className="flex items-center justify-end mt-4">
+        {/* location과 university 정보는 삭제하고 협업 기간으로 대체 */}
         <div className="flex items-center gap-2 text-slate-600 text-sm">
-          <svg className="w-4 h-4" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5z"/>
-          </svg>
-          <span>{profile.location ?? "-"}</span>
-          {profile.university && <><span className="mx-1">·</span><span>{profile.university}</span></>}
+          <span>협업 기간: {profile.collaborationPeriod}</span>
         </div>
 
-        {typeof profile.matchScore === "number" && (
-          <div className="w-40">
-            <div className="flex items-center justify-between mb-1 text-sm">
-              <div className="flex items-center gap-1 text-slate-600">
-                <svg className="w-4 h-4" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2l2.39 4.85L20 7.27l-3.9 3.8L17.3 18 12 15.27 6.7 18l1.2-6.93L4 7.27l5.61-.42L12 2z"/></svg>
-                <span>매치율</span>
-              </div>
-              <span className="font-medium">{profile.matchScore}%</span>
-            </div>
-            <div className="h-2 w-full rounded bg-slate-200 overflow-hidden">
-              <div className="h-full bg-teal-500" style={{ width: `${profile.matchScore}%` }} />
-            </div>
-          </div>
-        )}
+        {/* 매치율 (matchScore) 관련 로직 모두 삭제됨 */}
       </div>
 
       <footer className="flex items-center justify-end gap-2 mt-5">

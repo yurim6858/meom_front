@@ -25,6 +25,7 @@ import TeamMembersPage from "./pages/TeamMembersPage";
 // import TeamInvitationsPage from "./pages/TeamInvitationsPage";
 import ProjectManagePage from "./pages/ProjectManagePage";
 import AiRecommendPage from './pages/Matching/AiRecommendPage';
+import ContestListPage from './pages/contest/ContestListPage';
 
 import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
@@ -62,6 +63,7 @@ function App() {
           {/* 초대 기능 제거됨 - 지원 승인 시 바로 팀 멤버 추가 */}
           {/* <Route path='/teams/:id/invitations' element={<TeamInvitationsPage/>} /> */}
           <Route path='/projects/:id/manage' element={<ProjectManagePage/>} />
+          <Route path="/contests" element={<ContestListPage />} />
           <Route path="/matching/ai-recommend" element={<AiRecommendPage />} />
         </Route>
       </Routes>
