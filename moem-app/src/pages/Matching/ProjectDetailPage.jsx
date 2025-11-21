@@ -5,7 +5,7 @@ import ApplicationModal from "../../components/shared/ApplicationModal";
 import ApplicationList from "../../components/shared/ApplicationList";
 import { ProjectAPI, ApplicationAPI } from "../../services/api/index";
 
-const MATCH_API_BASE = "/api/project-match/reason";
+const MATCH_API_BASE = "http://localhost:8080/api/project-match/reason";
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
@@ -73,7 +73,20 @@ export default function ProjectDetailPage() {
     setAiRecommendation("AI 추천 요약 (분석 중...)");
 
     try {
-      const response = await fetch(`${MATCH_API_BASE}/${currentUserId}/${currentProjectId}`);
+      // JWT 토큰을 헤더에 포함
+      const token = localStorage.getItem('accessToken');
+      const headers = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (token) {
+        headers['Authorization'] = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${MATCH_API_BASE}/${currentUserId}/${currentProjectId}`, {
+        method: 'GET',
+        headers: headers,
+      });
 
       if (response.ok) {
         const reason = await response.text();
