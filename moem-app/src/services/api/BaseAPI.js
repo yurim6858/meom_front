@@ -43,7 +43,9 @@ class BaseAPI {
 
   // POST 요청
   async post(endpoint, data, options = {}) {
-    const response = await this.axiosInstance.post(endpoint, data, options);
+    // options에 timeout이 있으면 axios config에 포함
+    const config = { ...options };
+    const response = await this.axiosInstance.post(endpoint, data, config);
     return response.data;
   }
 

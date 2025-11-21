@@ -122,8 +122,8 @@ export const SignupPage = () => {
   
 
   return (
-    <div>
-        <img src={logo} className="login-logo"/>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4">
+        <img src={logo} className="login-logo" style={{ marginBottom: '32px' }}/>
         <div>
       <form onSubmit={handleSignup} className="signup-box">
         <div>

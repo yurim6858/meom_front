@@ -115,6 +115,7 @@
   width: auto;
   display: block;
   margin: 0 auto;
+  margin-bottom: 80px;
 }
 .login-box nav {
   display: flex;

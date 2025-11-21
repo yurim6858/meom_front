@@ -24,7 +24,7 @@ import TeamEditPage from "./pages/TeamEditPage";
 import TeamMembersPage from "./pages/TeamMembersPage";
 // import TeamInvitationsPage from "./pages/TeamInvitationsPage";
 import ProjectManagePage from "./pages/ProjectManagePage";
-import AiRecommendPage from './pages/matching/AiRecommendPage';
+import AiRecommendPage from './pages/Matching/AiRecommendPage';
 
 import LoginPage from "./pages/auth/LoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";

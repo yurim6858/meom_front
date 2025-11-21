@@ -144,15 +144,19 @@ export default function MyProjectsPage() {
                   {/* 프로젝트 썸네일/헤더 영역 */}
                   <div className={`relative h-48 bg-gradient-to-br ${colorVariant.gradient}`}>
                     <div className="absolute top-4 right-4">
-                      {project.projectEndDate ? (
-                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-slate-600/80 text-white backdrop-blur-sm">
-                          종료됨
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/80 text-white backdrop-blur-sm">
-                          진행 중
-                        </span>
-                      )}
+                      {(() => {
+                        // 종료일이 있고, 현재 날짜보다 이전이면 종료됨
+                        const isEnded = project.projectEndDate && new Date(project.projectEndDate) < new Date();
+                        return isEnded ? (
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-slate-600/80 text-white backdrop-blur-sm">
+                            종료됨
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/80 text-white backdrop-blur-sm">
+                            진행 중
+                          </span>
+                        );
+                      })()}
                     </div>
                     <div className="absolute bottom-4 left-4 right-4">
                       <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-1 line-clamp-2">

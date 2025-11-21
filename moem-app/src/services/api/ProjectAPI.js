@@ -108,6 +108,20 @@ class ProjectAPI extends BaseAPI {
       throw error;
     }
   }
+
+  // 프로젝트 엔티티 수정 (프로젝트 기간 등)
+  async updateProjectEntity(id, projectData) {
+    try {
+      return await this.put(`/projects/${id}`, projectData, {
+        headers: {
+          'X-Username': localStorage.getItem('username')
+        }
+      });
+    } catch (error) {
+      console.error('프로젝트 엔티티 수정 실패:', error);
+      throw error;
+    }
+  }
 }
 
 export default ProjectAPI;

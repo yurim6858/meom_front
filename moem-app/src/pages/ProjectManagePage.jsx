@@ -5,11 +5,22 @@ import apiService from '../services/api/index';
 import AuthAPI from '../services/api/AuthAPI';
 
 // 달력 컴포넌트
-const CalendarComponent = () => {
+const CalendarComponent = ({ assignments = [] }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
+  
+  // 특정 날짜의 과제 가져오기
+  const getAssignmentsForDate = (date) => {
+    if (!assignments || assignments.length === 0) return [];
+    const dateStr = new Date(year, month, date).toISOString().split('T')[0];
+    return assignments.filter(assignment => {
+      if (!assignment.dueAt) return false;
+      const dueDate = new Date(assignment.dueAt).toISOString().split('T')[0];
+      return dueDate === dateStr;
+    });
+  };
   
   // 이전 달로 이동
   const goToPreviousMonth = () => {
@@ -108,24 +119,55 @@ const CalendarComponent = () => {
       
       {/* 달력 그리드 */}
       <div className="grid grid-cols-7 gap-1">
-        {days.map((day, index) => (
-          <div
-            key={index}
-            className={`
-              aspect-square flex items-center justify-center text-sm rounded transition-colors
-              ${!day.isCurrentMonth
-                ? 'text-gray-300 dark:text-gray-600'
-                : day.isToday
-                ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold'
-                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
-              }
-              ${index % 7 === 0 ? 'text-red-500 dark:text-red-400' : ''}
-              ${index % 7 === 6 ? 'text-blue-500 dark:text-blue-400' : ''}
-            `}
-          >
-            {day.date}
-          </div>
-        ))}
+        {days.map((day, index) => {
+          const dayAssignments = day.isCurrentMonth ? getAssignmentsForDate(day.date) : [];
+          const totalCount = dayAssignments.length;
+          
+          return (
+            <div
+              key={index}
+              className={`
+                aspect-square flex flex-col items-center justify-start p-1 text-sm rounded transition-colors relative
+                ${!day.isCurrentMonth
+                  ? 'text-gray-300 dark:text-gray-600'
+                  : day.isToday
+                  ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
+                }
+                ${index % 7 === 0 ? 'text-red-500 dark:text-red-400' : ''}
+                ${index % 7 === 6 ? 'text-blue-500 dark:text-blue-400' : ''}
+              `}
+            >
+              <span className="text-xs font-medium">{day.date}</span>
+              {day.isCurrentMonth && totalCount > 0 && (
+                <div className="mt-1 flex flex-col gap-0.5 w-full">
+                  {dayAssignments.slice(0, 2).map((assignment, idx) => (
+                    <div
+                      key={assignment.id || idx}
+                      className={`text-[10px] px-1 py-0.5 rounded truncate ${
+                        assignment.status === 'COMPLETED'
+                          ? 'bg-green-500 text-white'
+                          : assignment.status === 'IN_PROGRESS'
+                          ? 'bg-blue-500 text-white'
+                          : assignment.status === 'DELAYED'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-gray-400 text-white'
+                      }`}
+                      title={assignment.title}
+                    >
+                      {assignment.title}
+                    </div>
+                  ))}
+                  {totalCount > 2 && (
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center">
+                      +{totalCount - 2}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -144,8 +186,17 @@ export default function ProjectManagePage() {
   const [activeMenu, setActiveMenu] = useState('overview');
   const [assignments, setAssignments] = useState([]);
   const [loadingAssignments, setLoadingAssignments] = useState(false);
-  const [generatingAI, setGeneratingAI] = useState(false);
-  const [generatingSchedule, setGeneratingSchedule] = useState(false);
+  const [generatingFullSchedule, setGeneratingFullSchedule] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState({ step: '', progress: 0 });
+  const [weeklyReports, setWeeklyReports] = useState([]);
+  const [loadingReports, setLoadingReports] = useState(false);
+  const [projectStartDate, setProjectStartDate] = useState('');
+  const [projectEndDate, setProjectEndDate] = useState('');
+  const [updatingPeriod, setUpdatingPeriod] = useState(false);
+  const [showEndDateModal, setShowEndDateModal] = useState(false);
+  const [tempEndDate, setTempEndDate] = useState('');
+  const [projectWeeks, setProjectWeeks] = useState(''); // 주 단위로 변경
+  const [pendingAction, setPendingAction] = useState(null); // 'fullSchedule'
 
   useEffect(() => {
     loadProjectData();
@@ -154,6 +205,9 @@ export default function ProjectManagePage() {
   useEffect(() => {
     if (project && activeMenu === 'tasks') {
       loadAssignments();
+    }
+    if (project && activeMenu === 'evaluation') {
+      loadWeeklyReports();
     }
   }, [project, activeMenu]);
 
@@ -200,6 +254,16 @@ export default function ProjectManagePage() {
       }
 
       setProject(foundProject);
+      
+      // 프로젝트 기간 설정
+      if (foundProject.projectStartDate) {
+        const startDate = new Date(foundProject.projectStartDate);
+        setProjectStartDate(startDate.toISOString().split('T')[0]);
+      }
+      if (foundProject.projectEndDate) {
+        const endDate = new Date(foundProject.projectEndDate);
+        setProjectEndDate(endDate.toISOString().split('T')[0]);
+      }
 
       // 프로젝트에 연결된 팀 정보 가져오기
       if (foundProject.teamId) {
@@ -249,51 +313,326 @@ export default function ProjectManagePage() {
     }
   };
 
-  const handleGenerateAssignmentsWithAI = async () => {
+  const handleGenerateFullScheduleWithAI = async () => {
     if (!project) return;
 
+    // 종료일 체크
+    if (!project.projectEndDate) {
+      setProjectWeeks('');
+      setPendingAction('fullSchedule');
+      setShowEndDateModal(true);
+      return;
+    }
+
     const confirmed = window.confirm(
-      'AI를 사용하여 프로젝트 과제를 자동 생성하시겠습니까?\n\n' +
-      '프로젝트 정보를 기반으로 적절한 과제들이 생성됩니다.'
+      'AI를 사용하여 프로젝트 전체 스케줄을 자동 생성하시겠습니까?\n\n' +
+      '프로젝트 타입별 템플릿과 주차별 스케줄링을 활용하여 전체 기간의 과제가 생성됩니다.\n' +
+      '전체 과제와 포지션별 개인 과제가 모두 생성됩니다.\n' +
+      '이 작업은 시간이 걸릴 수 있습니다.\n\n' +
+      `프로젝트 종료일: ${formatDate(project.projectEndDate)}\n` +
+      '계속하시겠습니까?'
     );
 
     if (!confirmed) return;
 
     try {
-      setGeneratingAI(true);
-      const generatedAssignments = await apiService.assignments.generateWithAI(project.id);
-      alert(`과제 ${generatedAssignments.length}개가 성공적으로 생성되었습니다.`);
-      await loadAssignments();
+      setGeneratingFullSchedule(true);
+      setGenerationProgress({ step: '프로젝트 분석 중...', progress: 10 });
+      
+      let progressInterval = null;
+      
+      try {
+        // 진행률 시뮬레이션 (실제 API 응답 전까지)
+        progressInterval = setInterval(() => {
+          setGenerationProgress(prev => {
+            // 90% 이전: 단계별 진행
+            if (prev.progress < 90) {
+              const steps = [
+                { step: '프로젝트 분석 중...', progress: 20 },
+                { step: '템플릿 생성 중...', progress: 35 },
+                { step: '주차별 스케줄링 중...', progress: 50 },
+                { step: '과제 생성 중...', progress: 70 },
+                { step: '최종 검토 중...', progress: 85 }
+              ];
+              const nextStep = steps.find(s => s.progress > prev.progress);
+              return nextStep || { step: '거의 완료...', progress: Math.min(prev.progress + 2, 90) };
+            }
+            // 90% 이후: 천천히 증가 (최대 98%까지)
+            else if (prev.progress < 98) {
+              return { step: '거의 완료...', progress: Math.min(prev.progress + 1, 98) };
+            }
+            // 98% 이상: 유지
+            return prev;
+          });
+        }, 2000);
+
+        const generatedAssignments = await apiService.assignments.generateFullScheduleWithAI(project.id);
+        
+        if (progressInterval) clearInterval(progressInterval);
+        setGenerationProgress({ step: '완료!', progress: 100 });
+        
+        // 100%를 2초간 표시한 후 완료 처리
+        setTimeout(() => {
+          alert(`전체 스케줄 생성 완료! ${generatedAssignments.length}개의 과제가 생성되었습니다.`);
+          setGenerationProgress({ step: '', progress: 0 });
+          loadAssignments();
+        }, 2000);
+      } catch (apiErr) {
+        if (progressInterval) clearInterval(progressInterval);
+        throw apiErr;
+      }
     } catch (err) {
-      console.error('AI 과제 생성 실패:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'AI 과제 생성에 실패했습니다.';
-      alert(`과제 생성에 실패했습니다.\n\n에러: ${errorMessage}`);
+      console.error('AI 전체 스케줄 생성 실패:', err);
+      console.error('에러 상세 정보:', {
+        message: err.message,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+        data: err.response?.data,
+        config: err.config
+      });
+      
+      // 타임아웃 에러 처리
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        alert(
+          '요청 시간이 초과되었습니다.\n\n' +
+          'AI 전체 스케줄 생성은 시간이 오래 걸릴 수 있습니다.\n' +
+          '서버에서 작업이 진행 중일 수 있으니 잠시 후 과제 목록을 확인해주세요.\n\n' +
+          '또는 프로젝트 기간을 짧게 설정하거나 다시 시도해주세요.'
+        );
+      } else if (err.response?.status === 503) {
+        const errorMessage = err.response?.data?.message || 'AI 서비스가 사용할 수 없습니다.';
+        alert(`AI 서비스 사용 불가\n\n${errorMessage}\n\nGemini API 키를 설정해주세요.`);
+      } else if (err.response?.status === 404) {
+        const errorMessage = err.response?.data?.message || '프로젝트를 찾을 수 없습니다.';
+        alert(`프로젝트를 찾을 수 없습니다.\n\n${errorMessage}`);
+      } else if (err.response?.status === 400) {
+        const errorMessage = err.response?.data?.message || err.response?.data?.error || '잘못된 요청입니다.';
+        alert(`잘못된 요청입니다.\n\n${errorMessage}\n\n프로젝트 종료일이 설정되어 있는지 확인해주세요.`);
+      } else if (err.response?.status >= 500) {
+        const errorMessage = err.response?.data?.message || '서버 오류가 발생했습니다.';
+        alert(`서버 오류\n\n${errorMessage}\n\n잠시 후 다시 시도해주세요.`);
+      } else {
+        // 기타 에러
+        const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'AI 전체 스케줄 생성에 실패했습니다.';
+        const statusInfo = err.response?.status ? `\n상태 코드: ${err.response.status}` : '';
+        alert(`전체 스케줄 생성에 실패했습니다.\n\n${errorMessage}${statusInfo}`);
+      }
     } finally {
-      setGeneratingAI(false);
+      setGeneratingFullSchedule(false);
+      setGenerationProgress({ step: '', progress: 0 });
     }
   };
 
-  const handleGenerateScheduleWithAI = async () => {
+  const loadWeeklyReports = async () => {
     if (!project) return;
+    
+    try {
+      setLoadingReports(true);
+      const reports = await apiService.weeklyReports.getByProject(project.id);
+      setWeeklyReports(reports || []);
+    } catch (err) {
+      console.error('주간 리포트 조회 실패:', err);
+      setWeeklyReports([]);
+    } finally {
+      setLoadingReports(false);
+    }
+  };
 
-    const confirmed = window.confirm(
-      'AI를 사용하여 프로젝트 일정을 자동 생성하시겠습니까?\n\n' +
-      '프로젝트 정보를 기반으로 주요 마일스톤과 일정이 생성됩니다.'
-    );
+  const handleUpdateProjectPeriod = async () => {
+    if (!project || !isLeader) return;
 
-    if (!confirmed) return;
+    if (!projectStartDate) {
+      alert('프로젝트 시작일을 입력해주세요.');
+      return;
+    }
+
+    if (!projectEndDate) {
+      alert('프로젝트 종료일을 입력해주세요.');
+      return;
+    }
+
+    if (new Date(projectStartDate) >= new Date(projectEndDate)) {
+      alert('프로젝트 종료일은 시작일보다 늦어야 합니다.');
+      return;
+    }
 
     try {
-      setGeneratingSchedule(true);
-      const generatedSchedules = await apiService.assignments.generateScheduleWithAI(project.id);
-      alert(`일정 ${generatedSchedules.length}개가 성공적으로 생성되었습니다.`);
-      await loadAssignments();
+      setUpdatingPeriod(true);
+      const updateData = {
+        name: project.name,
+        description: project.description || '',
+        type: project.type,
+        recruitTotal: project.recruitTotal || 0,
+        recruitStartDate: project.recruitStartDate || null,
+        recruitEndDate: project.recruitEndDate || null,
+        projectStartDate: projectStartDate,
+        projectEndDate: projectEndDate
+      };
+      
+      const updatedProject = await apiService.projects.updateEntity(project.id, updateData);
+      setProject(updatedProject);
+      alert('프로젝트 기간이 성공적으로 업데이트되었습니다.');
+      // 프로젝트 정보 다시 로드
+      loadProjectData();
     } catch (err) {
-      console.error('AI 일정 생성 실패:', err);
-      const errorMessage = err.response?.data?.message || err.message || 'AI 일정 생성에 실패했습니다.';
-      alert(`일정 생성에 실패했습니다.\n\n에러: ${errorMessage}`);
+      console.error('프로젝트 기간 업데이트 실패:', err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || '알 수 없는 오류가 발생했습니다.';
+      alert(`프로젝트 기간 업데이트에 실패했습니다.\n\n에러: ${errorMessage}`);
     } finally {
-      setGeneratingSchedule(false);
+      setUpdatingPeriod(false);
+    }
+  };
+
+  const handleSaveEndDateAndProceed = async () => {
+    if (!projectWeeks || parseInt(projectWeeks) <= 0) {
+      alert('프로젝트 기간(주)을 입력해주세요.');
+      return;
+    }
+
+    const weeks = parseInt(projectWeeks);
+    if (weeks < 1 || weeks > 52) {
+      alert('프로젝트 기간은 1주 이상 52주 이하여야 합니다.');
+      return;
+    }
+
+    // 시작일에서 주를 더해서 종료일 계산
+    const startDate = project.projectStartDate ? new Date(project.projectStartDate) : new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + (weeks * 7) - 1); // 마지막 날 포함
+
+    try {
+      setUpdatingPeriod(true);
+      const updateData = {
+        name: project.name,
+        description: project.description || '',
+        type: project.type,
+        recruitTotal: project.recruitTotal || 0,
+        recruitStartDate: project.recruitStartDate || null,
+        recruitEndDate: project.recruitEndDate || null,
+        projectStartDate: project.projectStartDate || startDate.toISOString().split('T')[0],
+        projectEndDate: endDate.toISOString().split('T')[0]
+      };
+      
+      const updatedProject = await apiService.projects.updateEntity(project.id, updateData);
+      setProject(updatedProject);
+      
+      // 프로젝트 정보 다시 로드
+      await loadProjectData();
+      
+      // 모달 닫기
+      setShowEndDateModal(false);
+      setProjectWeeks('');
+      
+      // 저장된 종료일로 확인 후 진행
+      const action = pendingAction;
+      setPendingAction(null);
+      
+      const endDateFormatted = endDate.toLocaleDateString('ko-KR');
+      
+      if (action === 'fullSchedule') {
+        const confirmed = window.confirm(
+          `프로젝트 기간이 ${weeks}주로 설정되었습니다.\n\n` +
+          'AI를 사용하여 프로젝트 전체 스케줄을 자동 생성하시겠습니까?\n\n' +
+          '프로젝트 타입별 템플릿과 주차별 스케줄링을 활용하여 전체 기간의 과제가 생성됩니다.\n' +
+          '전체 과제와 포지션별 개인 과제가 모두 생성됩니다.\n' +
+          '이 작업은 시간이 걸릴 수 있습니다.\n\n' +
+          `프로젝트 종료일: ${endDateFormatted}\n` +
+          '계속하시겠습니까?'
+        );
+        
+        if (confirmed) {
+          try {
+            setGeneratingFullSchedule(true);
+            setGenerationProgress({ step: '프로젝트 분석 중...', progress: 10 });
+            
+            let progressInterval = null;
+            
+            try {
+              // 진행률 시뮬레이션 (실제 API 응답 전까지)
+              progressInterval = setInterval(() => {
+                setGenerationProgress(prev => {
+                  // 90% 이전: 단계별 진행
+                  if (prev.progress < 90) {
+                    const steps = [
+                      { step: '프로젝트 분석 중...', progress: 20 },
+                      { step: '템플릿 생성 중...', progress: 35 },
+                      { step: '주차별 스케줄링 중...', progress: 50 },
+                      { step: '과제 생성 중...', progress: 70 },
+                      { step: '최종 검토 중...', progress: 85 }
+                    ];
+                    const nextStep = steps.find(s => s.progress > prev.progress);
+                    return nextStep || { step: '거의 완료...', progress: Math.min(prev.progress + 2, 90) };
+                  }
+                  // 90% 이후: 천천히 증가 (최대 98%까지)
+                  else if (prev.progress < 98) {
+                    return { step: '거의 완료...', progress: Math.min(prev.progress + 1, 98) };
+                  }
+                  // 98% 이상: 유지
+                  return prev;
+                });
+              }, 2000);
+
+              const generatedAssignments = await apiService.assignments.generateFullScheduleWithAI(project.id);
+              
+              if (progressInterval) clearInterval(progressInterval);
+              setGenerationProgress({ step: '완료!', progress: 100 });
+              
+              // 100%를 2초간 표시한 후 완료 처리
+              setTimeout(() => {
+                alert(`전체 스케줄 생성 완료! ${generatedAssignments.length}개의 과제가 생성되었습니다.`);
+                setGenerationProgress({ step: '', progress: 0 });
+                loadAssignments();
+              }, 2000);
+            } catch (apiErr) {
+              if (progressInterval) clearInterval(progressInterval);
+              throw apiErr;
+            }
+          } catch (err) {
+            console.error('AI 전체 스케줄 생성 실패:', err);
+            console.error('에러 상세 정보:', {
+              message: err.message,
+              status: err.response?.status,
+              statusText: err.response?.statusText,
+              data: err.response?.data,
+              config: err.config
+            });
+            
+            // 타임아웃 에러 처리
+            if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+              alert(
+                '요청 시간이 초과되었습니다.\n\n' +
+                'AI 전체 스케줄 생성은 시간이 오래 걸릴 수 있습니다.\n' +
+                '서버에서 작업이 진행 중일 수 있으니 잠시 후 과제 목록을 확인해주세요.\n\n' +
+                '또는 프로젝트 기간을 짧게 설정하거나 다시 시도해주세요.'
+              );
+            } else if (err.response?.status === 503) {
+              const errorMessage = err.response?.data?.message || 'AI 서비스가 사용할 수 없습니다.';
+              alert(`AI 서비스 사용 불가\n\n${errorMessage}\n\nGemini API 키를 설정해주세요.`);
+            } else if (err.response?.status === 404) {
+              const errorMessage = err.response?.data?.message || '프로젝트를 찾을 수 없습니다.';
+              alert(`프로젝트를 찾을 수 없습니다.\n\n${errorMessage}`);
+            } else if (err.response?.status === 400) {
+              const errorMessage = err.response?.data?.message || err.response?.data?.error || '잘못된 요청입니다.';
+              alert(`잘못된 요청입니다.\n\n${errorMessage}\n\n프로젝트 종료일이 설정되어 있는지 확인해주세요.`);
+            } else if (err.response?.status >= 500) {
+              const errorMessage = err.response?.data?.message || '서버 오류가 발생했습니다.';
+              alert(`서버 오류\n\n${errorMessage}\n\n잠시 후 다시 시도해주세요.`);
+            } else {
+              const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'AI 전체 스케줄 생성에 실패했습니다.';
+              const statusInfo = err.response?.status ? `\n상태 코드: ${err.response.status}` : '';
+              alert(`전체 스케줄 생성에 실패했습니다.\n\n${errorMessage}${statusInfo}`);
+            }
+          } finally {
+            setGeneratingFullSchedule(false);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('프로젝트 종료일 저장 실패:', err);
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || '알 수 없는 오류가 발생했습니다.';
+      alert(`프로젝트 종료일 저장에 실패했습니다.\n\n에러: ${errorMessage}`);
+    } finally {
+      setUpdatingPeriod(false);
     }
   };
 
@@ -443,6 +782,16 @@ export default function ProjectManagePage() {
               팀
             </button>
             <button
+              onClick={() => setActiveMenu('evaluation')}
+              className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
+                activeMenu === 'evaluation'
+                  ? 'bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white font-medium'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+              }`}
+            >
+              평가
+            </button>
+            <button
               onClick={() => setActiveMenu('settings')}
               className={`w-full text-left px-3 py-2 rounded text-sm transition-colors ${
                 activeMenu === 'settings'
@@ -475,32 +824,60 @@ export default function ProjectManagePage() {
                   <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-3 leading-tight">
                     {project.name || project.title || '프로젝트 이름'}
                   </h1>
-                  <div className="flex items-center gap-3">
-                    {project.projectEndDate ? (
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-                        종료됨
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
-                        진행 중
-                      </span>
-                    )}
+                  <div className="flex items-center gap-3 mb-4">
+                    {(() => {
+                      // 종료일이 있고, 현재 날짜보다 이전이면 종료됨
+                      const isEnded = project.projectEndDate && new Date(project.projectEndDate) < new Date();
+                      return isEnded ? (
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+                          종료됨
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                          진행 중
+                        </span>
+                      );
+                    })()}
+                  </div>
+                  <div className="flex items-center justify-between">
                     {project.projectStartDate && (
                       <span className="text-sm text-gray-500 dark:text-gray-400">
                         {formatDate(project.projectStartDate)}
                       </span>
                     )}
+                    {isLeader && (() => {
+                      // 종료일이 없거나, 종료일이 미래이면 버튼 표시
+                      const isEnded = project.projectEndDate && new Date(project.projectEndDate) < new Date();
+                      return !isEnded;
+                    })() && (
+                      <div className="flex flex-wrap gap-3">
+                        <button
+                          onClick={handleGenerateFullScheduleWithAI}
+                          disabled={generatingFullSchedule}
+                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm relative"
+                        >
+                          {generatingFullSchedule ? (
+                            <>
+                              <LoadingSpinner size="sm" />
+                              <span>{generationProgress.step || '전체 스케줄 생성 중...'}</span>
+                              {generationProgress.progress > 0 && (
+                                <span className="text-xs opacity-75">({generationProgress.progress}%)</span>
+                              )}
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                              </svg>
+                              <span>AI로 전체 스케줄 생성</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* 설명 */}
-                {project.description && (
-                  <div className="mb-8">
-                    <p className="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {project.description}
-                    </p>
-                  </div>
-                )}
               </>
             )}
 
@@ -603,27 +980,6 @@ export default function ProjectManagePage() {
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">과제</h2>
-                    {isLeader && !project.projectEndDate && (
-                      <button
-                        onClick={handleGenerateAssignmentsWithAI}
-                        disabled={generatingAI}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
-                      >
-                        {generatingAI ? (
-                          <>
-                            <LoadingSpinner size="sm" />
-                            <span>AI 생성 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            <span>AI로 과제 생성</span>
-                          </>
-                        )}
-                      </button>
-                    )}
                   </div>
 
                   {loadingAssignments ? (
@@ -634,7 +990,11 @@ export default function ProjectManagePage() {
                   ) : assignments.length === 0 ? (
                     <div className="text-center py-12 text-gray-500 dark:text-gray-400">
                       <p className="text-sm mb-4">등록된 과제가 없습니다.</p>
-                      {isLeader && !project.projectEndDate && (
+                      {isLeader && (() => {
+                        // 종료일이 없거나, 종료일이 미래이면 메시지 표시
+                        const isEnded = project.projectEndDate && new Date(project.projectEndDate) < new Date();
+                        return !isEnded;
+                      })() && (
                         <p className="text-xs">AI를 사용하여 과제를 자동 생성할 수 있습니다.</p>
                       )}
                     </div>
@@ -658,6 +1018,24 @@ export default function ProjectManagePage() {
                               <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                                 <span>담당자 ID: {assignment.userId}</span>
                                 <span>마감일: {formatDate(assignment.dueAt)}</span>
+                                {assignment.status && (
+                                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                    assignment.status === 'COMPLETED' 
+                                      ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                                      : assignment.status === 'IN_PROGRESS'
+                                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                                      : assignment.status === 'DELAYED'
+                                      ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                                      : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                                  }`}>
+                                    {assignment.status === 'COMPLETED' ? '완료' :
+                                     assignment.status === 'IN_PROGRESS' ? '진행 중' :
+                                     assignment.status === 'DELAYED' ? '지연' : '할 일'}
+                                  </span>
+                                )}
+                                {assignment.progress !== null && assignment.progress !== undefined && (
+                                  <span className="text-xs">진행률: {assignment.progress}%</span>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -674,31 +1052,10 @@ export default function ProjectManagePage() {
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">스케줄</h2>
-                    {isLeader && !project.projectEndDate && (
-                      <button
-                        onClick={handleGenerateScheduleWithAI}
-                        disabled={generatingSchedule}
-                        className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
-                      >
-                        {generatingSchedule ? (
-                          <>
-                            <LoadingSpinner size="sm" />
-                            <span>AI 생성 중...</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span>AI로 일정 생성</span>
-                          </>
-                        )}
-                      </button>
-                    )}
                   </div>
                   
                   {/* 달력 컴포넌트 */}
-                  <CalendarComponent />
+                  <CalendarComponent assignments={assignments} />
                 </div>
               </div>
             )}
@@ -735,32 +1092,173 @@ export default function ProjectManagePage() {
               </div>
             )}
 
+            {activeMenu === 'evaluation' && (
+              <div className="space-y-8">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">주간 평가 리포트</h2>
+                  
+                  {loadingReports ? (
+                    <div className="flex justify-center items-center py-12">
+                      <LoadingSpinner size="lg" />
+                      <span className="ml-3 text-sm text-gray-600 dark:text-gray-400">리포트를 불러오는 중...</span>
+                    </div>
+                  ) : weeklyReports.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      <p className="text-sm mb-4">생성된 주간 리포트가 없습니다.</p>
+                      <p className="text-xs">매주 월요일 오전 9시에 자동으로 리포트가 생성됩니다.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {weeklyReports.map((report) => (
+                        <div
+                          key={report.id}
+                          className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
+                        >
+                          <div className="flex items-start justify-between mb-4">
+                            <div>
+                              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                {report.weekNumber}주차 리포트
+                              </h3>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {new Date(report.weekStartDate).toLocaleDateString('ko-KR')} ~ {new Date(report.weekEndDate).toLocaleDateString('ko-KR')}
+                              </p>
+                            </div>
+                          </div>
+
+                          {report.performanceData && (
+                            <div className="mb-4">
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">성과 지표</h4>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">전체 과제</span>
+                                  <p className="font-semibold text-gray-900 dark:text-white">{report.performanceData.totalAssignments || 0}개</p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">완료</span>
+                                  <p className="font-semibold text-green-600 dark:text-green-400">{report.performanceData.completedAssignments || 0}개</p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">진행 중</span>
+                                  <p className="font-semibold text-blue-600 dark:text-blue-400">{report.performanceData.inProgressAssignments || 0}개</p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-500 dark:text-gray-400">지연</span>
+                                  <p className="font-semibold text-red-600 dark:text-red-400">{report.performanceData.delayedAssignments || 0}개</p>
+                                </div>
+                                <div className="col-span-2 md:col-span-4">
+                                  <span className="text-gray-500 dark:text-gray-400">완료율</span>
+                                  <p className="font-semibold text-gray-900 dark:text-white">{report.performanceData.completionRate || 0}%</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {report.aiAnalysis && (
+                            <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">AI 분석</h4>
+                              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">
+                                {report.aiAnalysis}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {activeMenu === 'settings' && (
               <div className="space-y-8">
                 <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
                   <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">설정</h2>
-                  <div className="space-y-4">
-                  {isLeader && !project.projectEndDate && (
-                    <button
-                      onClick={handleEndProject}
-                      disabled={ending}
-                      className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors border border-red-200 dark:border-red-800 disabled:opacity-50 flex items-center gap-2"
-                    >
-                      {ending ? (
-                        <>
-                          <LoadingSpinner size="sm" />
-                          <span>종료 중...</span>
-                        </>
-                      ) : (
-                        <span>프로젝트 종료</span>
-                      )}
-                    </button>
-                  )}
-                  {project.projectEndDate && (
-                    <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 rounded">
-                      종료됨: {formatDate(project.projectEndDate)}
-                    </div>
-                  )}
+                  <div className="space-y-6">
+                    {/* 프로젝트 기간 설정 */}
+                    {isLeader && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-white">프로젝트 기간</h3>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              프로젝트 시작일 *
+                            </label>
+                            <input
+                              type="date"
+                              value={projectStartDate}
+                              onChange={(e) => setProjectStartDate(e.target.value)}
+                              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                              프로젝트 종료일 *
+                            </label>
+                            <input
+                              type="date"
+                              value={projectEndDate}
+                              onChange={(e) => setProjectEndDate(e.target.value)}
+                              min={projectStartDate || undefined}
+                              readOnly={!!project.projectEndDate}
+                              className={`w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
+                                project.projectEndDate ? 'bg-gray-100 dark:bg-gray-800 cursor-not-allowed' : ''
+                              }`}
+                            />
+                            {project.projectEndDate && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                종료일은 변경할 수 없습니다.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleUpdateProjectPeriod}
+                          disabled={updatingPeriod || !projectStartDate || !projectEndDate}
+                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          {updatingPeriod ? (
+                            <>
+                              <LoadingSpinner size="sm" />
+                              <span>저장 중...</span>
+                            </>
+                          ) : (
+                            <span>프로젝트 기간 저장</span>
+                          )}
+                        </button>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          * 프로젝트 기간을 설정하면 AI가 전체 스케줄을 생성할 때 이 기간을 기준으로 주차별 과제를 생성합니다.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* 프로젝트 종료 */}
+                    {isLeader && (() => {
+                      // 종료일이 없거나, 종료일이 미래이면 종료 버튼 표시
+                      const isEnded = project.projectEndDate && new Date(project.projectEndDate) < new Date();
+                      return !isEnded;
+                    })() && (
+                      <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <button
+                          onClick={handleEndProject}
+                          disabled={ending}
+                          className="w-full text-left px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors border border-red-200 dark:border-red-800 disabled:opacity-50 flex items-center gap-2"
+                        >
+                          {ending ? (
+                            <>
+                              <LoadingSpinner size="sm" />
+                              <span>종료 중...</span>
+                            </>
+                          ) : (
+                            <span>프로젝트 종료</span>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                    {project.projectEndDate && (
+                      <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-800 rounded">
+                        종료됨: {formatDate(project.projectEndDate)}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -769,6 +1267,77 @@ export default function ProjectManagePage() {
           </div>
         </div>
       </div>
+
+      {/* 종료일 입력 모달 */}
+      {showEndDateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-xl max-w-md w-full mx-4">
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4">
+              프로젝트 기간 설정
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              AI 스케줄 생성을 위해 프로젝트를 몇 주 동안 진행할지 입력해주세요.
+              <br />
+              프로젝트 기간은 한 번 설정하면 변경할 수 없습니다.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                프로젝트 기간 (주) *
+              </label>
+              <input
+                type="number"
+                value={projectWeeks}
+                onChange={(e) => setProjectWeeks(e.target.value)}
+                min="1"
+                max="52"
+                placeholder="예: 12"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+              {project?.projectStartDate && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  시작일: {formatDate(project.projectStartDate)}
+                  {projectWeeks && parseInt(projectWeeks) > 0 && (
+                    <span className="ml-2">
+                      → 종료일: {(() => {
+                        const startDate = new Date(project.projectStartDate);
+                        const endDate = new Date(startDate);
+                        endDate.setDate(endDate.getDate() + (parseInt(projectWeeks) * 7) - 1);
+                        return endDate.toLocaleDateString('ko-KR');
+                      })()}
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  setShowEndDateModal(false);
+                  setProjectWeeks('');
+                  setPendingAction(null);
+                }}
+                className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                취소
+              </button>
+              <button
+                onClick={handleSaveEndDateAndProceed}
+                disabled={!projectWeeks || parseInt(projectWeeks) <= 0 || updatingPeriod}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {updatingPeriod ? (
+                  <>
+                    <LoadingSpinner size="sm" />
+                    <span>저장 중...</span>
+                  </>
+                ) : (
+                  <span>저장하고 계속</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

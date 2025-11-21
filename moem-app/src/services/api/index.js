@@ -39,6 +39,7 @@ const apiService = {
     getMy: () => projectAPI.getMyProjects(),
     getStartedProject: (id) => projectAPI.getStartedProject(id),
     endProject: (id) => projectAPI.endProject(id),
+    updateEntity: (id, data) => projectAPI.updateProjectEntity(id, data),
   },
   
   // 사용자 관련
@@ -105,8 +106,16 @@ const apiService = {
     create: (data) => assignmentAPI.createAssignment(data),
     update: (id, data) => assignmentAPI.updateAssignment(id, data),
     delete: (id) => assignmentAPI.deleteAssignment(id),
+    updateStatus: (id, data) => assignmentAPI.updateAssignmentStatus(id, data),
     generateWithAI: (projectId) => assignmentAPI.generateAssignmentsWithAI(projectId),
     generateScheduleWithAI: (projectId) => assignmentAPI.generateScheduleWithAI(projectId),
+    generateFullScheduleWithAI: (projectId) => assignmentAPI.generateFullScheduleWithAI(projectId),
+  },
+
+  // 주간 리포트 관련
+  weeklyReports: {
+    getByProject: (projectId) => assignmentAPI.getWeeklyReports(projectId),
+    getByWeek: (projectId, weekStartDate) => assignmentAPI.getWeeklyReport(projectId, weekStartDate),
   }
 };
 
