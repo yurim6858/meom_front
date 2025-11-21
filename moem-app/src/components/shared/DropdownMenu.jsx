@@ -32,6 +32,11 @@ const DropdownMenu = ({ isOpen, onClose }) => {
       title: '내 공고 관리',
       path: '/my-posts',
       icon: '📋'
+    },
+    {
+      title: 'AI 맞춤 추천',
+      path: '/matching/ai-recommend',
+      icon: '🤖'
     }
   ];
 
