@@ -5,6 +5,8 @@ import ApplicationModal from "../../components/shared/ApplicationModal";
 import ApplicationList from "../../components/shared/ApplicationList";
 import { ProjectAPI, ApplicationAPI } from "../../services/api/index";
 
+const MATCH_API_BASE = "/api/project-match/reason";
+
 export default function ProjectDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -28,21 +30,23 @@ export default function ProjectDetailPage() {
   const [aiRecommendation, setAiRecommendation] = useState(null);
 
   const fetchAiRecommendation = useCallback(async (currentProjectId, currentUserId) => {
-    if (!currentProjectId || !currentUserId) return;
+    // ⭐️ 1. 이미 로딩 중이거나 ID가 없으면 호출하지 않습니다.
+    if (aiLoading || !currentProjectId || !currentUserId) return;
 
     setAiLoading(true);
     setAiRecommendation("AI 추천 요약 (분석 중...)"); // 로딩 메시지
     
     try {
-        // GET /api/project-match/reason/{userId}/{projectId} 호출
         const response = await fetch(`${MATCH_API_BASE}/${currentUserId}/${currentProjectId}`);
         
         if (response.ok) {
             const reason = await response.text();
             setAiRecommendation(reason);
         } else {
-            setAiRecommendation("AI 추천 이유를 불러오는 데 실패했습니다.");
-            console.error("AI API 호출 실패:", response.status, await response.text());
+            // 서버에서 오류(4xx, 5xx)가 발생한 경우 처리
+            const errorText = await response.text();
+            setAiRecommendation("AI 추천 이유를 불러오는 데 실패했습니다. (서버 오류)");
+            console.error("AI API 호출 실패:", response.status, errorText);
         }
     } catch (err) {
         setAiRecommendation("네트워크 오류 발생. 서버 연결 확인 필요.");
@@ -50,7 +54,7 @@ export default function ProjectDetailPage() {
     } finally {
         setAiLoading(false);
     }
-}, []);
+  }, [aiLoading]);
 
   // 상세 조회
   useEffect(() => {
@@ -61,15 +65,15 @@ export default function ProjectDetailPage() {
         const data = await projectAPI.getProject(id);
         setPosting(data);
         
-        // 지원 여부 확인
+        // 지원 여부만 확인하고 AI 호출은 하지 않습니다.
         if (currentUser && currentUser.id) {
           try {
             const applications = await applicationAPI.getApplicationsByProject(id);
             const userApplication = applications.find(app => app.applicantUsername === currentUser.username);
             setHasApplied(!!userApplication);
-            fetchAiRecommendation(data.id, currentUser.id);
+            // ⭐️ AI 호출은 여기서 제거합니다.
           } catch (err) {
-            console.error("지원 여부 및 AI 호출 실패:", err);
+            console.error("지원 여부 확인 실패:", err);
           }
         }
       } catch (err) {
@@ -84,7 +88,13 @@ export default function ProjectDetailPage() {
     if (id) {
       fetchPosting();
     }
-  }, [id, currentUser, fetchAiRecommendation]);
+  }, [id, currentUser]);
+
+  useEffect(() => {
+    if (!aiRecommendation && posting && currentUser && currentUser.id && posting.id) {
+        fetchAiRecommendation(posting.id, currentUser.id);
+    }
+  }, [posting, currentUser, fetchAiRecommendation, aiRecommendation]);
 
   const handleRetry = () => {
     window.location.reload();
@@ -104,8 +114,6 @@ export default function ProjectDetailPage() {
       alert("삭제 중 오류가 발생했습니다.");
     }
   };
-
-  const MATCH_API_BASE = "/api/project-match/reason"; // API 경로 정의
 
   if (loading) {
     return (
